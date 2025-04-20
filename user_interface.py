@@ -1,6 +1,7 @@
 """Module that defines the user interface for the game."""
 
 import pygame
+from towers import DartTower, SniperTower
 
 
 class TowerPurchasingUI:
@@ -59,7 +60,7 @@ class GameUI:
 
         button_width = 140
         button_height = 40
-        start_y = game_instance.height - button_height - 10
+        start_y = 800 - button_height - 10
 
         self.purchase_buttons = [
             TowerPurchasingUI(
@@ -178,7 +179,7 @@ class GameUI:
                 tower_classes = {
                     "dart": DartTower,
                     "sniper": SniperTower,
-                    "bomb": BombTower,
+                    # "bomb": BombTower,
                 }
                 tower_costs = {"dart": 100, "sniper": 200, "bomb": 300}
 

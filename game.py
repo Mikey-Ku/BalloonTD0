@@ -6,6 +6,7 @@ import pygame
 from map import Track, load_waypoints_from_csv
 from balloon import RedBalloon, BlueBalloon
 from towers import Tower
+from user_interface import GameUI
 
 
 class Game:
@@ -26,6 +27,17 @@ class Game:
         self.balloons_to_spawn = 10
         self.spawn_delay = 500  # milliseconds between spawns
         self.last_spawn_time = 0
+        self.ui = GameUI(self)
+
+        # Font for displaying stats
+        self.font = pygame.font.SysFont(None, 36)
+
+    def draw_stats(self):
+        """Draw money and lives on screen"""
+        money_text = self.font.render(f"Money: ${self.money}", True, (0, 0, 0))
+        lives_text = self.font.render(f"Lives: {self.lives}", True, (0, 0, 0))
+        self.screen.blit(money_text, (10, 10))
+        self.screen.blit(lives_text, (10, 50))
 
     def run(self):
         """Main game loop"""
