@@ -22,8 +22,6 @@ class Balloon:
         current_waypoint (int): Index of the next waypoint to move toward.
     """
 
-    waypoints = []  # the path that all balloons take
-
     def __init__(  # pylint is tripping , too many args??
         self,
         x,
@@ -74,18 +72,18 @@ class Balloon:
 
     def move(self):
         """
-        Moves the balloon toward its next waypoint along the path.
-
-        This method updates the balloon's position based on its speed and current waypoint.
-        Once a waypoint is reached, it progresses to the next one.
-
-        **** Will implement more once we reach a consensus on how waypoints work
+        Moves the balloon forward along the path by skipping `speed` waypoints.
 
         Returns:
-            bool: True if the balloon has reached the final
-            waypoint (end of path). False, if otherwise.
+            bool: True if the balloon has reached the end of the path.
         """
-        pass
+        self.current_waypoint += int(self.speed)
+
+        if self.current_waypoint >= len(self.waypoints):
+            return True
+
+        self.x, self.y = self.waypoints[self.current_waypoint]
+        return False
 
     def take_damage(self, amount):
         """
@@ -110,45 +108,45 @@ class RedBalloon(Balloon):
         type (str): The type identifier for the balloon ("red").
     """
 
-    def __init__(self):
+    def __init__(self, waypoints):
         """
         Initializes a RedBalloon with preset stats.
         """
         super().__init__(
-            x=Balloon.waypoints[0][0],
-            y=Balloon.waypoints[0][1],
+            x=waypoints[0][0],
+            y=waypoints[0][1],
             health=1,
-            color=(255, 0, 0),  # rgb red
+            color=(255, 0, 0),
             speed=1.0,
             size=10,
             reward=5,
             damage=1,
-            waypoints=Balloon.waypoints,
+            waypoints=waypoints,
         )
         self.type = "red"
 
 
 class BlueBalloon(Balloon):
     """
-    A subclass of Balloon representing a standard red balloon.
+    A subclass of Balloon representing a standard blue balloon.
 
     Attributes:
-        type (str): The type identifier for the balloon ("red").
+        type (str): The type identifier for the balloon ("blue").
     """
 
-    def __init__(self):
+    def __init__(self, waypoints):
         """
         Initializes a RedBalloon with preset stats.
         """
         super().__init__(
-            x=Balloon.waypoints[0][0],
-            y=Balloon.waypoints[0][1],
+            x=waypoints[0][0],
+            y=waypoints[0][1],
             health=1,
-            color=(0, 0, 255),  # rgb blue
+            color=(0, 0, 255),
             speed=1.0,
             size=10,
             reward=5,
             damage=1,
-            waypoints=Balloon.waypoints,
+            waypoints=waypoints,
         )
-        self.type = "red"
+        self.type = "blue"
