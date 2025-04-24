@@ -13,7 +13,7 @@ class Track:
     A class to represent the game map and balloon path
     """
 
-    def __init__(self, width=800, height=600):
+    def __init__(self, width=1920, height=1080):
         """
         Initialize the track with game dimensions and waypoints
         """
@@ -59,8 +59,16 @@ class Track:
         return False
 
     def draw(self, screen):
-        """Draw the track and path on screen"""
-        pass  # Implementation details here
+        # Draw the path as a thick line between waypoints
+        """"""
+        if len(self.waypoints) >= 2:
+            pygame.draw.lines(
+                screen, (0, 0, 0), False, self.waypoints, 4
+            )  # black path line
+
+        # Optional: draw circles for turns or debugging
+        for x, y in self.waypoints:
+            pygame.draw.circle(screen, (0, 255, 0), (int(x), int(y)), 3)
 
 
 def load_waypoints_from_csv(filename):

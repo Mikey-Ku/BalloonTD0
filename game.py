@@ -12,12 +12,17 @@ from user_interface import GameUI
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("Balloon TD")
 
         self.track = Track()
-        self.waypoints = load_waypoints_from_csv("waypoints_final.csv")
+        self.waypoints = load_waypoints_from_csv("waypoints_final_scaled.csv")
         self.track.waypoints = self.waypoints
+
+        self.screen = pygame.display.set_mode((1920, 1080))
+        pygame.display.set_caption("Balloon TD")
+
+        # ✅ Load the background image AFTER the display is set
+        self.background = pygame.image.load("map_background.png").convert()
+        self.background = pygame.transform.scale(self.background, (1920, 1080))
 
         self.balloons = []
         self.towers = []
@@ -45,7 +50,7 @@ class Game:
         running = True
 
         while running:
-            self.screen.fill((255, 255, 255))  # clear screen
+            self.screen.blit(self.background, (0, 0))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
