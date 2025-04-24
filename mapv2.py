@@ -6,7 +6,6 @@ interact with.
 import math
 import csv
 import pygame
-import csv
 
 
 class Track:
@@ -24,24 +23,6 @@ class Track:
         self.towers = []
         self.valid_tower_positions = set()
         self.tower_invalid_radius = 15
-
-    def load_waypoints_from_csv(self, csv_file_path):
-        """Load waypoints from a CSV file"""
-        self.waypoints = []
-        with open(csv_file_path, "r") as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                if len(row) >= 2:
-                    try:
-                        x = int(row[0])
-                        y = int(row[1])
-                        self.waypoints.append((x, y))
-                    except ValueError:
-                        print(
-                            f"Warning: Could not convert {row} to coordinates"
-                        )
-
-            self.update_valid_positions()
 
     def is_valid_tower_position(self, x, y):
         """Check if a position is valid for tower placement"""
@@ -76,3 +57,33 @@ class Track:
             self.towers.remove(tower)
             return True
         return False
+
+    def draw(self, screen):
+        """Draw the track and path on screen"""
+        # Draw path between waypoints
+        if len(self.waypoints) > 1:
+            pygame.draw.lines(
+                screen, (100, 100, 100), False, self.waypoints, 20
+            )
+
+        # Draw waypoints
+        for point in self.waypoints:
+            pygame.draw.circle(
+                screen, (50, 50, 50), (int(point[0]), int(point[1])), 5
+            )
+
+
+def load_waypoints_from_csv(filename):
+    """
+    Loads waypoints from a CSV file and returns a list of (x, y) tuples.
+    """
+    waypoints = []
+    with open(filename, newline="") as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)  # skip header
+        for row in reader:
+            if len(row) >= 2:
+                x = float(row[0])
+                y = float(row[1])
+                waypoints.append((x, y))
+    return waypoints

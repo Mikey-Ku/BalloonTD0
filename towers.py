@@ -13,9 +13,11 @@ class Tower:
     damage (int): Amount of damage dealt per attack.
     attack_speed (float): Number of attacks per second.
     cooldown (float): Time until the tower can attack again.
+    last_attack (float): Time of the last attack.
+    upgrade_cost (int): Cost to upgrade the tower.
     """
 
-    def init(self):
+    def __init__(self):
         self.x = 0
         self.y = 0
         self.level = 1
@@ -24,6 +26,8 @@ class Tower:
         self.damage = 0
         self.attack_speed = 0
         self.cooldown = 0
+        self.last_attack = 0
+        self.upgrade_cost = 100
 
     def in_range(self, target):
         """
@@ -41,37 +45,21 @@ class Tower:
         return False
 
     def find_target(self, balloons):
-        """
-        Chooses a balloon to attack. By finding the balloons in range
-        and finding the one furthest along the track.
-        Args:
-            balloons (list or dict)
-        Returns:
-            the class of the balloon to attack
-        """
-        range_balloons = []
+        """Find the first balloon in range"""
         for balloon in balloons:
-            if self.in_range(balloons[balloon]):
-                range_balloons.append(balloon)
-            for balloon in range_balloons:
-                current_balloon = balloons[balloon]
-                if current_balloon.current_waypoint > balloon.current_waypoint:
-                    current_balloon = balloon
-        return current_balloon
+            if self.in_range((balloon.x, balloon.y)):
+                return balloon
+        return None
 
     def attack(self, balloons, current_time):
-        """
-        Attacks a balloon if it's in range and at a rate based on cooldown
-        and uses the take damage.
-
-        Args:
-            balloons (list or dict)
-        Returns:
-            Deals damage to a balloon
-        """
-        if (current_time % self.cooldown) == 0:
+        """Attack balloons if cooldown has passed"""
+        if (
+            current_time - self.last_attack >= self.cooldown * 1000
+        ):  # Convert to milliseconds
             target = self.find_target(balloons)
-            target.take_damage(self.damage)
+            if target:
+                target.take_damage(self.damage)
+                self.last_attack = current_time
 
     def upgrade(self):
         """
