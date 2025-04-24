@@ -6,7 +6,6 @@ interact with.
 import math
 import csv
 import pygame
-import csv
 
 
 class Track:
@@ -14,7 +13,7 @@ class Track:
     A class to represent the game map and balloon path
     """
 
-    def __init__(self, width=1920, height=1080):
+    def __init__(self, width=800, height=600):
         """
         Initialize the track with game dimensions and waypoints
         """
@@ -24,24 +23,6 @@ class Track:
         self.towers = []
         self.valid_tower_positions = set()
         self.tower_invalid_radius = 15
-
-    def load_waypoints_from_csv(self, csv_file_path):
-        """Load waypoints from a CSV file"""
-        self.waypoints = []
-        with open(csv_file_path, "r") as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                if len(row) >= 2:
-                    try:
-                        x = int(row[0])
-                        y = int(row[1])
-                        self.waypoints.append((x, y))
-                    except ValueError:
-                        print(
-                            f"Warning: Could not convert {row} to coordinates"
-                        )
-
-            self.update_valid_positions()
 
     def is_valid_tower_position(self, x, y):
         """Check if a position is valid for tower placement"""
@@ -78,16 +59,18 @@ class Track:
         return False
 
     def draw(self, screen):
-        # Draw the path as a thick line between waypoints
-        """"""
-        if len(self.waypoints) >= 2:
+        """Draw the track and path on screen"""
+        # Draw path between waypoints
+        if len(self.waypoints) > 1:
             pygame.draw.lines(
-                screen, (0, 0, 0), False, self.waypoints, 4
-            )  # black path line
+                screen, (100, 100, 100), False, self.waypoints, 20
+            )
 
-        # Optional: draw circles for turns or debugging
-        for x, y in self.waypoints:
-            pygame.draw.circle(screen, (0, 255, 0), (int(x), int(y)), 3)
+        # Draw waypoints
+        for point in self.waypoints:
+            pygame.draw.circle(
+                screen, (50, 50, 50), (int(point[0]), int(point[1])), 5
+            )
 
 
 def load_waypoints_from_csv(filename):

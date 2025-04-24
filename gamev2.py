@@ -3,38 +3,31 @@ Main game file that initializes and runs the game loop.
 """
 
 import pygame
-from map import Track, load_waypoints_from_csv
-from balloon import RedBalloon, BlueBalloon
-from towers import Tower
+from mapv2 import load_waypoints_from_csv, Track
+from balloon import RedBalloon
 from user_interface import GameUI
 
 
 class Game:
     def __init__(self):
         pygame.init()
-
-        self.track = Track()
-        self.waypoints = load_waypoints_from_csv("waypoints_final_scaled.csv")
-        self.track.waypoints = self.waypoints
-
-        self.screen = pygame.display.set_mode((1920, 1080))
+        self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
-
-        # ✅ Load the background image AFTER the display is set
-        self.background = pygame.image.load("map_background.png").convert()
-        self.background = pygame.transform.scale(self.background, (1920, 1080))
-
+        self.background = pygame.image.load("Background.webp").convert()
+        self.background = pygame.transform.scale(self.background, (800, 600))
+        self.track = Track()
+        self.waypoints = load_waypoints_from_csv("waypoints_final.csv")
+        self.track.waypoints = self.waypoints
         self.balloons = []
         self.towers = []
         self.money = 1000
         self.lives = 100
         self.round_started = False
         self.balloons_to_spawn = 10
-        self.spawn_delay = 500  # milliseconds between spawns
+        self.spawn_delay = 500
         self.last_spawn_time = 0
+        self.current_wave = 1
         self.ui = GameUI(self)
-
-        # Font for displaying stats
         self.font = pygame.font.SysFont(None, 36)
 
     def draw_stats(self):
@@ -43,10 +36,6 @@ class Game:
         lives_text = self.font.render(f"Lives: {self.lives}", True, (0, 0, 0))
         self.screen.blit(money_text, (10, 10))
         self.screen.blit(lives_text, (10, 50))
-        self.round_started = False
-        self.balloons_to_spawn = 10
-        self.spawn_delay = 500  # milliseconds between spawns
-        self.last_spawn_time = 0
 
     def run(self):
         """Main game loop"""
@@ -54,6 +43,8 @@ class Game:
         running = True
 
         while running:
+            current_time = pygame.time.get_ticks()
+            # Draw background instead of white fill
             self.screen.blit(self.background, (0, 0))
 
             for event in pygame.event.get():
@@ -62,10 +53,11 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         self.round_started = True
-                        self.last_spawn_time = pygame.time.get_ticks()
+                        self.last_spawn_time = current_time
+                # Handle UI events
+                self.ui.handle_event(event)
 
             # spawn balloons
-            current_time = pygame.time.get_ticks()
             if self.round_started and self.balloons_to_spawn > 0:
                 if current_time - self.last_spawn_time >= self.spawn_delay:
                     self.balloons.append(RedBalloon(self.waypoints))
@@ -79,9 +71,20 @@ class Game:
                 if reached_end:
                     self.lives -= balloon.damage
                     self.balloons.remove(balloon)
+                elif balloon.health <= 0:
+                    self.money += balloon.reward
+                    self.balloons.remove(balloon)
 
-            # draw track
-            self.track.draw(self.screen)
+            # Update and draw towers
+            for tower in self.towers:
+                tower.attack(self.balloons, current_time)
+                pygame.draw.circle(
+                    self.screen, (0, 0, 0), (int(tower.x), int(tower.y)), 15
+                )
+
+            # draw UI
+            self.ui.draw(self.screen)
+            self.draw_stats()
 
             pygame.display.flip()
             clock.tick(60)

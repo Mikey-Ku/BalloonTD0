@@ -32,8 +32,19 @@ class TowerPurchasingUI:
             screen: Pygame surface to draw on
             money: Current player money for color coding
         """
-        color = (200, 200, 200)
+        if money >= self.cost:
+            color = (150, 255, 150)  # Light green
+            text_color = (0, 0, 0)
+        else:
+            color = (255, 150, 150)  # Light red
+            text_color = (100, 100, 100)
+
         pygame.draw.rect(screen, color, self.rect)
+        pygame.draw.rect(screen, (0, 0, 0), self.rect, 2)
+
+        text_surface = self.font.render(self.text, True, text_color)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
 
     def handle_event(self, event):
         """
@@ -60,7 +71,7 @@ class GameUI:
 
         button_width = 140
         button_height = 40
-        start_y = 800 - button_height - 10
+        start_y = 550
 
         self.purchase_buttons = [
             TowerPurchasingUI(
@@ -89,22 +100,12 @@ class GameUI:
 
     def draw(self, screen):
         """Draw all UI elements and tower preview."""
-        # Draw purchase buttons
         for button in self.purchase_buttons:
             button.draw(screen, self.game.money)
-
-        # Draw game stats (money, lives, wave)
-        stats_text = (
-            f"Money: ${self.game.money}  Lives: {self.game.lives}  Wave:"
-            f" {self.game.current_wave}"
-        )
-
-        # Draw tower preview at mouse position if tower is selected for placement
         if self.selected_tower_type:
             mouse_pos = pygame.mouse.get_pos()
             ranges = {"dart": 120, "sniper": 250, "bomb": 150}
 
-            # Determine if position is valid
             is_valid = self.game.track.is_valid_tower_position(*mouse_pos)
 
             # Draw range circle
@@ -114,10 +115,8 @@ class GameUI:
                 color,
                 mouse_pos,
                 ranges[self.selected_tower_type],
-                1,  # Just an outline
+                1,
             )
-
-            # Draw tower placeholder
             pygame.draw.circle(
                 screen, color, mouse_pos, self.selected_tower_radius
             )
@@ -165,7 +164,6 @@ class GameUI:
                 pygame.draw.rect(screen, (0, 0, 0), sell_rect, 1)
                 screen.blit(sell_surface, (sell_rect.x + 5, sell_rect.y + 5))
 
-                # Store button positions for event handling
                 self.upgrade_rect = upgrade_rect
                 self.sell_rect = sell_rect
 
@@ -213,28 +211,20 @@ class GameUI:
                 if hasattr(self, "sell_rect") and self.sell_rect.collidepoint(
                     pos
                 ):
-                    # Sell tower
                     sell_price = int(self.selected_tower.cost * 0.7)
                     self.game.money += sell_price
                     self.game.towers.remove(self.selected_tower)
                     self.selected_tower = None
                     return True
-
-            # Then check if a tower was clicked
             for tower in self.game.towers:
-                # Simple circular hit detection
                 if (
                     (tower.x - pos[0]) ** 2 + (tower.y - pos[1]) ** 2
                 ) <= self.selected_tower_radius**2:
                     self.selected_tower = tower
                     return True
-
-            # If clicked elsewhere, deselect tower
             if self.selected_tower:
                 self.selected_tower = None
                 return True
-
-        # Handle button clicks
         for button in self.purchase_buttons:
             if button.handle_event(event):
                 return True

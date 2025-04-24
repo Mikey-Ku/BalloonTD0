@@ -12,26 +12,23 @@ from user_interface import GameUI
 class Game:
     def __init__(self):
         pygame.init()
-
-        self.track = Track()
-        self.waypoints = load_waypoints_from_csv("waypoints_final_scaled.csv")
-        self.track.waypoints = self.waypoints
-
-        self.screen = pygame.display.set_mode((1920, 1080))
+        self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
 
-        # ✅ Load the background image AFTER the display is set
-        self.background = pygame.image.load("map_background.png").convert()
-        self.background = pygame.transform.scale(self.background, (1920, 1080))
+        self.track = Track()
+        # Define path waypoints
+        path_points = []
+        for x, y in path_points:
+            self.track.add_waypoint(x, y)
+
+        Balloon.waypoints = self.track.waypoints
+        self.waypoints = load_waypoints_from_csv("waypoints_final.csv")
+        self.track.waypoints = self.waypoints
 
         self.balloons = []
         self.towers = []
         self.money = 1000
         self.lives = 100
-        self.round_started = False
-        self.balloons_to_spawn = 10
-        self.spawn_delay = 500  # milliseconds between spawns
-        self.last_spawn_time = 0
         self.ui = GameUI(self)
 
         # Font for displaying stats
@@ -49,12 +46,42 @@ class Game:
         self.last_spawn_time = 0
 
     def run(self):
+        clock = pygame.time.Clock()
         """Main game loop"""
         clock = pygame.time.Clock()
         running = True
 
+
         while running:
-            self.screen.blit(self.background, (0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                self.ui.handle_event(event)
+
+            self.screen.fill((144, 238, 144))  # Light green background
+
+            self.track.draw(self.screen)
+            for tower in self.towers:
+                pygame.draw.circle(
+                    self.screen, (50, 50, 50), (int(tower.x), int(tower.y)), 20
+                )
+                # Draw tower range
+                pygame.draw.circle(
+                    self.screen,
+                    (100, 100, 100),
+                    (int(tower.x), int(tower.y)),
+                    int(tower.range),
+                    1,
+                )
+
+            self.ui.draw(self.screen)
+            self.draw_stats()
+
+            pygame.display.flip()
+            clock.tick(60)
+
+        pygame.quit()
+            self.screen.fill((255, 255, 255))  # clear screen
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
