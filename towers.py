@@ -79,12 +79,13 @@ class Tower:
         self.range *= 1.1
         self.attack_speed *= 1.2
         self.cost = self.cost * 1.5  # this is messed up it sells for too much
+        self.upgrade_cost = self.upgrade_cost * 1.5
 
     def sell(self):
         """
         Return partial cost for selling the tower.
         """
-        return self.cost * 0.7
+        return self.upgrade_cost * 0.7
 
 
 class SniperTower(Tower):
