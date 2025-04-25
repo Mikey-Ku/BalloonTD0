@@ -20,7 +20,6 @@ class Game:
         self.screen = pygame.display.set_mode((1920, 1080))
         pygame.display.set_caption("Balloon TD")
 
-        # ✅ Load the background image AFTER the display is set
         self.background = pygame.image.load("map_background.png").convert()
         self.background = pygame.transform.scale(self.background, (1920, 1080))
 
