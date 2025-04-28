@@ -1,6 +1,3 @@
-import math
-
-
 class Tower:
     """
     Represents a tower on the map. Towers are placed on the map and automatically
@@ -55,27 +52,26 @@ class Tower:
         return None
 
     def attack(self, balloons, current_time):
-        """Attack balloons if cooldown has passed, handle downgrades in-line."""
-        # compute interval from your attack_speed (attacks/sec)
         interval_ms = 1000 / self.attack_speed
         if current_time - self.last_attack >= interval_ms:
             target = self.find_target(balloons)
             if target:
-                # apply damage *once*
+                balloons.remove(target)  # kill the old one
                 spawned = target.take_damage(self.damage)
-                if spawned:
-                    # balloon died and wants to downgrade
-                    balloons.remove(target)
-                    balloons.extend(spawned)
-                # no else: if health>0 it just stays in list
+                balloons.extend(spawned)  # maybe one new lower‐tier
                 self.last_attack = current_time
 
     def upgrade(self):
         """
         Upgrade tower attributes at a cost.
         """
+        print(
+            f"[Upgrade] {self.__class__.__name__}: damage {self.damage} →"
+            f" {self.damage+1}"
+        )
+
         self.level += 1
-        self.damage = math.ceil(self.damage * 1.5)
+        self.damage += 1
         self.range *= 1.1
         self.attack_speed *= 1.2
         self.cost = self.cost * 1.5  # this is messed up it sells for too much
