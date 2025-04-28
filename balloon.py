@@ -5,10 +5,11 @@ A file containing the parent class for all Balloons as well as all subclasses.
 import pygame
 
 BALLOON_TIERS = [
-    ("red", lambda waypoints: RedBalloon(waypoints)),
-    ("blue", lambda waypoints: BlueBalloon(waypoints)),
-    ("green", lambda waypoints: GreenBalloon(waypoints)),
-    ("yellow", lambda waypoints: YellowBalloon(waypoints)),
+    ("red", lambda w: RedBalloon(w)),
+    ("blue", lambda w: BlueBalloon(w)),
+    ("green", lambda w: GreenBalloon(w)),
+    ("yellow", lambda w: YellowBalloon(w)),
+    ("pink", lambda w: PinkBalloon(w)),
 ]
 
 
@@ -95,34 +96,33 @@ class Balloon:
         return False
 
     def take_damage(self, amount):
-        self.health -= amount
-        if self.health > 0:
+        """
+        Downgrade this balloon by `amount` tiers:
+          - If idx - amount >= 0: spawn one balloon of that lower tier.
+          - Else: pop (no spawn).
+        """
+        # build a list of just the tier names
+        tier_names = [name for name, _ in BALLOON_TIERS]
+        try:
+            idx = tier_names.index(self.type)
+        except ValueError:
+            # unknown type → just die
             return []
 
-        index = next(
-            (
-                i
-                for i, (name, _) in enumerate(BALLOON_TIERS)
-                if name == self.type
-            ),
-            None,
-        )
-        if index is None:
-            return []
+        # compute target tier
+        new_idx = idx - amount
 
-        balloons_to_spawn = []
-        remaining_damage = -self.health
+        # if still in range, spawn exactly one of that tier
+        if new_idx >= 0:
+            _, ctor = BALLOON_TIERS[new_idx]
+            child = ctor(self.waypoints)
+            # preserve position and progress
+            child.x, child.y = self.x, self.y
+            child.current_waypoint = self.current_waypoint
+            return [child]
 
-        while index > 0 and remaining_damage > 0:
-            index -= 1
-            spawn_name, spawn_func = BALLOON_TIERS[index]
-            new_balloon = spawn_func(self.waypoints)
-            new_balloon.x, new_balloon.y = self.x, self.y
-            new_balloon.current_waypoint = self.current_waypoint
-            balloons_to_spawn.append(new_balloon)
-            remaining_damage -= new_balloon.health
-
-        return balloons_to_spawn
+        # otherwise it's popped
+        return []
 
 
 class RedBalloon(Balloon):
@@ -235,7 +235,7 @@ class PinkBalloon(Balloon):
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
-            health=4,
+            health=5,
             color=(255, 192, 203),
             speed=12.0,
             size=10,

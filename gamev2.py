@@ -22,11 +22,11 @@ class Game:
         self.current_round = 1
 
         self.rounds_config = [
-            # {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            # {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            # {"balloons": [("blue", 20)], "spawn_delay": 300},
-            {"balloons": [("green", 10)], "spawn_delay": 300},
-            {"balloons": [("yellow", 5)], "spawn_delay": 300},
+            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
+            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
+            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
+            # {"balloons": [("green", 10)], "spawn_delay": 300},
+            #  {"balloons": [("yellow", 5)], "spawn_delay": 300},
             {"balloons": [("pink", 5)], "spawn_delay": 200},
         ]
 
@@ -36,7 +36,7 @@ class Game:
         self.background = pygame.image.load("Background.webp").convert()
         self.background = pygame.transform.scale(self.background, (800, 600))
         self.track = Track()
-        self.waypoints = load_waypoints_from_csv("waypoints_final.csv")
+        self.waypoints = load_waypoints_from_csv("equidistant_points.csv")
         self.track.waypoints = self.waypoints
         self.balloons = []
         self.towers = []
