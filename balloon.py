@@ -57,6 +57,8 @@ class Balloon(pygame.sprite.Sprite):
         self.speed = speed
         self.size = size
         self.reward = reward
+        # remember the “true” reward for this balloon (and its descendants)
+        self.base_reward = reward
         self.damage = damage
         self.waypoints = waypoints
         self.current_waypoint = 0
@@ -127,6 +129,7 @@ class Balloon(pygame.sprite.Sprite):
         if new_idx >= 0:
             _, ctor = balloon_tiers[new_idx]
             child = ctor(self.waypoints)
+            child.base_reward = self.base_reward
             # preserve position and progress
             child.x, child.y = self.x, self.y
             child.current_waypoint = self.current_waypoint
@@ -258,7 +261,7 @@ class PinkBalloon(Balloon):
             color=(255, 192, 203),
             speed=12.0,
             size=10,
-            reward=20,
+            reward=15,
             damage=10,
             waypoints=waypoints,
         )
