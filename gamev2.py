@@ -22,13 +22,13 @@ class Game:
         self.current_round = 1
         self.last_round = 10
 
-        self.rounds_config = [
-            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
-            # {"balloons": [("green", 10)], "spawn_delay": 300},
-            #  {"balloons": [("yellow", 5)], "spawn_delay": 300},
-            {"balloons": [("pink", 5)], "spawn_delay": 200},
+        self.round_spawn_list = [
+            {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
+            {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
+            {"balloons": [("blue", 20)], "spawn_delay": 300},
+            {"balloons": [("green", 10)], "spawn_delay": 300},
+            {"balloons": [("yellow", 10)], "spawn_delay": 300},
+            {"balloons": [("pink", 15)], "spawn_delay": 200},
         ]
 
         pygame.init()
@@ -69,8 +69,8 @@ class Game:
         self.balloons_queue = []
         round_index = self.current_round - 1
 
-        if round_index < len(self.rounds_config):
-            round_info = self.rounds_config[round_index]
+        if round_index < len(self.round_spawn_list):
+            round_info = self.round_spawn_list[round_index]
             self.spawn_delay = round_info["spawn_delay"]
 
             for balloon_type, count in round_info["balloons"]:
