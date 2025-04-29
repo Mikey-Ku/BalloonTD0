@@ -148,7 +148,7 @@ class GameUI:
                 # Upgrade button
                 upgrade_text = f"Upgrade: ${tower.upgrade_cost}"
                 upgrade_surface = font.render(upgrade_text, True, (0, 0, 0))
-                upgrade_rect = pygame.Rect(650, 550, 150, 30)
+                upgrade_rect = pygame.Rect(500, 550, 150, 30)
                 pygame.draw.rect(
                     screen, (100, 100, 100), upgrade_rect
                 )  # Darker background
@@ -163,7 +163,7 @@ class GameUI:
                 sell_price = int(tower.cost * 0.7)  # 70% of cost
                 sell_text = f"Sell: ${sell_price}"
                 sell_surface = font.render(sell_text, True, (0, 0, 0))
-                sell_rect = pygame.Rect(650, 510, 150, 30)
+                sell_rect = pygame.Rect(650, 550, 150, 30)
                 pygame.draw.rect(
                     screen, (100, 100, 100), sell_rect
                 )  # Darker background
@@ -224,7 +224,7 @@ class GameUI:
                 ):
                     sell_price = int(self.selected_tower.cost * 0.7)
                     self.game.money += sell_price
-                    self.game.towers.remove(self.selected_tower)
+                    self.game.tower_sprites.remove(self.selected_tower)
                     self.selected_tower = None
                     return True
             for tower in self.game.towers:
