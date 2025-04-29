@@ -215,7 +215,7 @@ class GreenBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "green"
-        self.load_image("balloon_images/red_balloon.png")
+        self.load_image("balloon_images/green_balloon.png")
 
 
 class YellowBalloon(Balloon):
