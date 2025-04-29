@@ -4,14 +4,6 @@ A file containing the parent class for all Balloons as well as all subclasses.
 
 import pygame
 
-BALLOON_TIERS = [
-    ("red", lambda w: RedBalloon(w)),
-    ("blue", lambda w: BlueBalloon(w)),
-    ("green", lambda w: GreenBalloon(w)),
-    ("yellow", lambda w: YellowBalloon(w)),
-    ("pink", lambda w: PinkBalloon(w)),
-]
-
 
 class Balloon:
     """
@@ -102,7 +94,7 @@ class Balloon:
           - Else: pop (no spawn).
         """
         # build a list of just the tier names
-        tier_names = [name for name, _ in BALLOON_TIERS]
+        tier_names = [name for name, _ in balloon_tiers]
         try:
             idx = tier_names.index(self.type)
         except ValueError:
@@ -114,7 +106,7 @@ class Balloon:
 
         # if still in range, spawn exactly one of that tier
         if new_idx >= 0:
-            _, ctor = BALLOON_TIERS[new_idx]
+            _, ctor = balloon_tiers[new_idx]
             child = ctor(self.waypoints)
             # preserve position and progress
             child.x, child.y = self.x, self.y
@@ -244,3 +236,12 @@ class PinkBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "pink"
+
+
+balloon_tiers = [
+    ("red", RedBalloon),
+    ("blue", BlueBalloon),
+    ("green", GreenBalloon),
+    ("yellow", YellowBalloon),
+    ("pink", PinkBalloon),
+]
