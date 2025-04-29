@@ -135,21 +135,34 @@ class Tower(pygame.sprite.Sprite):
         return max(targets_in_range, key=lambda b: b.current_waypoint)
 
     def attack(self, balloons, current_time):
+        """
+        Attack and return a list of (balloon, reward) pairs for money collection.
+        """
         interval_ms = 1000 / self.attack_speed
+        popped = []
+
         if current_time - self.last_attack >= interval_ms:
             target = self.find_target(balloons)
             if target:
                 dx = target.x - self.x
                 dy = target.y - self.y
-                self.angle = math.degrees(
-                    math.atan2(-dy, dx)
-                )  # Negative dy because pygame y-axis is down
-                balloons.remove(target)  # kill the old one
+                self.angle = math.degrees(math.atan2(-dy, dx))
+
+                # Save reward BEFORE damaging
+                original_reward = target.base_reward
+
                 spawned = target.take_damage(self.damage)
-                balloons.extend(spawned)  # maybe one new lower‐tier
+
+                balloons.remove(target)
+
+                if spawned:
+                    balloons.extend(spawned)
+                else:
+                    popped.append((target, original_reward))
+
                 self.last_attack = current_time
 
-        return None
+        return popped
 
     def upgrade(self):
         """

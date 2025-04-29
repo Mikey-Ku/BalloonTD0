@@ -249,6 +249,7 @@ class GameUI:
 
                 self.game.money -= tower_costs[self.selected_tower_type]
                 self.game.towers.append(tower)
+                self.game.track.towers.append(tower)
                 # Add the tower to the sprite group
                 self.game.tower_sprites.add(tower)
                 self.selected_tower_type = None

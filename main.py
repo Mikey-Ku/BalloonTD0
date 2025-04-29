@@ -189,21 +189,19 @@ class Game:
                 self.round_started = False
                 self.current_round += 1
 
-            # Update tower sprite positions and angles
             for tower in self.towers:
-                tower.update_angle(self.balloons)  # <--- Add this line
-                # Handle tower attacks
-                balloons_to_remove = tower.attack(self.balloons, current_time)
-                if balloons_to_remove is not None:
-                    for balloon in balloons_to_remove:
-                        if balloon in self.balloons:
-                            self.balloons.remove(balloon)
+                tower.update_angle(self.balloons)
+
+                popped = tower.attack(self.balloons, current_time)
+                if popped:
+                    for balloon, reward in popped:
+                        self.money += reward
 
                 # Update sprite position if it has a rect
                 if hasattr(tower, "rect") and tower.rect:
                     tower.rect.centerx = int(tower.x)
                     tower.rect.centery = int(tower.y)
-                tower.update()  # <--- Add this line to rotate image
+                tower.update()
 
             # Draw tower sprites instead of circles
             self.tower_sprites.draw(self.screen)
