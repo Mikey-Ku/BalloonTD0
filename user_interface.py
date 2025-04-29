@@ -60,6 +60,41 @@ class TowerPurchasingUI:
         return False
 
 
+class PausePlayButton:
+    """Class that handles the pause/play button."""
+
+    def __init__(self, rect, text, callback):
+        """
+        Initialize the button with a rectangle, text, and callback function.
+
+        Args:
+            rect: Tuple (x, y, width, height) for the button
+            text: Button text
+            callback: Function to call when clicked
+        """
+        self.rect = pygame.Rect(rect)
+        self.text = text
+        self.callback = callback
+        self.font = pygame.font.SysFont(None, 24)
+
+    def draw(self, screen):
+        """Draw the button on the screen."""
+        pygame.draw.rect(screen, (100, 100, 100), self.rect)
+        pygame.draw.rect(screen, (0, 0, 0), self.rect, 2)
+
+        text_surface = self.font.render(self.text, True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
+
+    def handle_event(self, event):
+        """Handle events for the button."""
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
+                self.callback()
+                return True
+        return False
+
+
 class GameUI:
     """Manages the game's user interface and tower placement."""
 
@@ -122,7 +157,6 @@ class GameUI:
             tower_classes = {
                 "dart": DartTower,
                 "sniper": SniperTower,
-                # "bomb": BombTower,
             }
             tower_preview = tower_classes[self.selected_tower_type]()
             tower_preview.x, tower_preview.y = mouse_pos
@@ -150,8 +184,6 @@ class GameUI:
                     tower.range,
                     1,  # Just an outline
                 )
-
-                # Draw simple upgrade/sell buttons
                 font = pygame.font.SysFont(None, 20)
 
                 # Upgrade button
@@ -233,6 +265,7 @@ class GameUI:
                 ):
                     sell_price = int(self.selected_tower.cost * 0.7)
                     self.game.money += sell_price
+                    self.game.towers.remove(self.selected_tower)
                     self.game.tower_sprites.remove(self.selected_tower)
                     self.selected_tower = None
                     return True
