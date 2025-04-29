@@ -3,7 +3,7 @@ Main game file that initializes and runs the game loop.
 """
 
 import pygame
-from mapv2 import load_waypoints_from_csv, Track
+from track import load_waypoints_from_csv, Track
 from balloon import (
     RedBalloon,
     BlueBalloon,
@@ -23,9 +23,9 @@ class Game:
         self.last_round = 10
 
         self.round_spawn_list = [
-            {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            {"balloons": [("blue", 20)], "spawn_delay": 300},
+            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
+            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
+            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
             {"balloons": [("green", 10)], "spawn_delay": 300},
             {"balloons": [("yellow", 10)], "spawn_delay": 300},
             {"balloons": [("pink", 15)], "spawn_delay": 200},
@@ -34,7 +34,9 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
-        self.background = pygame.image.load("Background.webp").convert()
+        self.background = pygame.image.load(
+            "background_images/Background.webp"
+        ).convert()
         self.background = pygame.transform.scale(self.background, (800, 600))
         self.track = Track()
         self.waypoints = load_waypoints_from_csv("equidistant_points.csv")
