@@ -100,11 +100,17 @@ class Tower(pygame.sprite.Sprite):
         return False
 
     def find_target(self, balloons):
-        """Find the first balloon in range"""
-        for balloon in balloons:
-            if self.in_range((balloon.x, balloon.y)):
-                return balloon
-        return None
+        """Find the balloon in range that is farthest along the path."""
+        targets_in_range = [
+            balloon
+            for balloon in balloons
+            if self.in_range((balloon.x, balloon.y))
+        ]
+        if not targets_in_range:
+            return None
+
+        # pick the balloon that is furthest along (highest current_waypoint)
+        return max(targets_in_range, key=lambda b: b.current_waypoint)
 
     def attack(self, balloons, current_time):
         interval_ms = 1000 / self.attack_speed
@@ -125,12 +131,12 @@ class Tower(pygame.sprite.Sprite):
         print(
             f"[Upgrade] {self.__class__.__name__}: damage {self.damage} →"
             f" {self.damage+1}"
-        )
+        )  # for debugging
 
         self.level += 1
         self.damage += 1
         self.range *= 1.1
-        self.attack_speed *= 1.2
+        self.attack_speed *= 1.1
         self.cost = self.cost * 1.5  # this is messed up it sells for too much
         self.upgrade_cost = self.upgrade_cost * 1.5
 

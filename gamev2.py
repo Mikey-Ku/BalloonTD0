@@ -16,7 +16,21 @@ from user_interface import GameUI
 
 class Game:
     def __init__(self):
-        # Existing initialization code
+
+        self.round_started = False
+        self.balloons_to_spawn = 0
+        self.current_round = 1
+        self.last_round = 10
+
+        self.round_spawn_list = [
+            {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
+            {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
+            {"balloons": [("blue", 20)], "spawn_delay": 300},
+            {"balloons": [("green", 10)], "spawn_delay": 300},
+            {"balloons": [("yellow", 10)], "spawn_delay": 300},
+            {"balloons": [("pink", 15)], "spawn_delay": 200},
+        ]
+
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
@@ -37,6 +51,7 @@ class Game:
         self.current_wave = 1
         self.ui = GameUI(self)
         self.font = pygame.font.SysFont(None, 36)
+        self.end_font = pygame.font.SysFont(None, 72)
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
@@ -63,13 +78,51 @@ class Game:
         self.balloons_queue = []
         round_index = self.current_round - 1
 
-        if round_index < len(self.rounds_config):
-            round_info = self.rounds_config[round_index]
+        if round_index < len(self.round_spawn_list):
+            round_info = self.round_spawn_list[round_index]
             self.spawn_delay = round_info["spawn_delay"]
 
             for balloon_type, count in round_info["balloons"]:
                 for _ in range(count):
                     self.balloons_queue.append(balloon_type)
+
+    def end_game(self):
+        """
+        Ends the game with a win or a lose case.
+        Clears UI.
+        Has a restart button.
+        Make its clear if win or lose.
+        """
+        game_over = True
+        if self.lives <= 0:
+            end_text = self.end_font.render("Game Over!", True, (255, 0, 0))
+
+        else:
+            end_text = self.end_font.render("You Win!", True, (0, 255, 0))
+
+        game_stats_text = self.font.render(
+            f"You made it {self.current_round - 1} rounds! ", True, (0, 0, 0)
+        )
+        restart_text = self.font.render(
+            "Press R to Restart or Q to Quit", True, (0, 0, 0)
+        )
+
+        while game_over:
+            pygame.display.flip()
+            self.screen.blit(self.background, (0, 0))
+            self.screen.blit(end_text, (250, 200))
+            self.screen.blit(game_stats_text, (250, 350))
+            self.screen.blit(restart_text, (200, 300))
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        # Restart the game
+                        self.__init__()
+                        self.run()
+                        return
+                    elif event.key == pygame.K_q:
+                        game_over = False
 
     def run(self):
         """Main game loop"""
@@ -156,6 +209,11 @@ class Game:
 
             pygame.display.flip()
             clock.tick(60)
+
+            # Ends Game
+            if self.last_round < self.current_round or self.lives <= 0:
+                self.end_game()
+                break
 
         pygame.quit()
 
