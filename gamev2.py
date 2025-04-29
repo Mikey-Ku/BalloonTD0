@@ -16,20 +16,7 @@ from user_interface import GameUI
 
 class Game:
     def __init__(self):
-
-        self.round_started = False
-        self.balloons_to_spawn = 0
-        self.current_round = 1
-
-        self.rounds_config = [
-            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
-            # {"balloons": [("green", 10)], "spawn_delay": 300},
-            #  {"balloons": [("yellow", 5)], "spawn_delay": 300},
-            {"balloons": [("pink", 5)], "spawn_delay": 200},
-        ]
-
+        # Existing initialization code
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
@@ -40,6 +27,7 @@ class Game:
         self.track.waypoints = self.waypoints
         self.balloons = []
         self.towers = []
+        self.tower_sprites = pygame.sprite.Group()
         self.money = 1000
         self.lives = 100
         self.round_started = False
@@ -49,7 +37,15 @@ class Game:
         self.current_wave = 1
         self.ui = GameUI(self)
         self.font = pygame.font.SysFont(None, 36)
+        self.round_started = False
+        self.balloons_to_spawn = 0
+        self.current_round = 1
 
+        self.rounds_config = [
+            {"balloons": [("pink", 5)], "spawn_delay": 200},
+        ]
+
+    # Existing methods remain unchanged
     def draw_stats(self):
         """Draw money, lives, and round counter on screen"""
         money_text = self.font.render(f"Money: ${self.money}", True, (0, 0, 0))
@@ -137,12 +133,22 @@ class Game:
                 self.round_started = False
                 self.current_round += 1
 
-            # Update and draw towers
+            # Update tower sprite positions
             for tower in self.towers:
-                tower.attack(self.balloons, current_time)
-                pygame.draw.circle(
-                    self.screen, (0, 0, 0), (int(tower.x), int(tower.y)), 15
-                )
+                # Handle tower attacks
+                balloons_to_remove = tower.attack(self.balloons, current_time)
+                if balloons_to_remove is not None:
+                    for balloon in balloons_to_remove:
+                        if balloon in self.balloons:
+                            self.balloons.remove(balloon)
+
+                # Update sprite position if it has a rect
+                if hasattr(tower, "rect") and tower.rect:
+                    tower.rect.centerx = int(tower.x)
+                    tower.rect.centery = int(tower.y)
+
+            # Draw tower sprites instead of circles
+            self.tower_sprites.draw(self.screen)
 
             # draw UI
             self.ui.draw(self.screen)

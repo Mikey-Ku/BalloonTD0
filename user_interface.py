@@ -148,9 +148,13 @@ class GameUI:
                 # Upgrade button
                 upgrade_text = f"Upgrade: ${tower.upgrade_cost}"
                 upgrade_surface = font.render(upgrade_text, True, (0, 0, 0))
-                upgrade_rect = pygame.Rect(10, 40, 150, 30)
-                pygame.draw.rect(screen, (200, 200, 200), upgrade_rect)
-                pygame.draw.rect(screen, (0, 0, 0), upgrade_rect, 1)
+                upgrade_rect = pygame.Rect(650, 550, 150, 30)
+                pygame.draw.rect(
+                    screen, (100, 100, 100), upgrade_rect
+                )  # Darker background
+                pygame.draw.rect(
+                    screen, (50, 50, 50), upgrade_rect, 3
+                )  # Thicker border
                 screen.blit(
                     upgrade_surface, (upgrade_rect.x + 5, upgrade_rect.y + 5)
                 )
@@ -159,9 +163,13 @@ class GameUI:
                 sell_price = int(tower.cost * 0.7)  # 70% of cost
                 sell_text = f"Sell: ${sell_price}"
                 sell_surface = font.render(sell_text, True, (0, 0, 0))
-                sell_rect = pygame.Rect(10, 80, 150, 30)
-                pygame.draw.rect(screen, (200, 200, 200), sell_rect)
-                pygame.draw.rect(screen, (0, 0, 0), sell_rect, 1)
+                sell_rect = pygame.Rect(650, 510, 150, 30)
+                pygame.draw.rect(
+                    screen, (100, 100, 100), sell_rect
+                )  # Darker background
+                pygame.draw.rect(
+                    screen, (50, 50, 50), sell_rect, 3
+                )  # Thicker border
                 screen.blit(sell_surface, (sell_rect.x + 5, sell_rect.y + 5))
 
                 self.upgrade_rect = upgrade_rect
@@ -184,9 +192,12 @@ class GameUI:
                 tower = tower_classes[self.selected_tower_type]()
                 tower.x, tower.y = pos
                 tower.position = pos  # For the track's use
+                tower.update_position(pos[0], pos[1])
 
                 self.game.money -= tower_costs[self.selected_tower_type]
                 self.game.towers.append(tower)
+                # Add the tower to the sprite group
+                self.game.tower_sprites.add(tower)
                 self.selected_tower_type = None
                 return True
 

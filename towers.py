@@ -1,4 +1,11 @@
-class Tower:
+import os
+import pygame
+
+# Add image cache at module level
+TOWER_IMAGES = {}
+
+
+class Tower(pygame.sprite.Sprite):
     """
     Represents a tower on the map. Towers are placed on the map and automatically
     attack enemy balloons within their range.
@@ -15,9 +22,12 @@ class Tower:
     cooldown (float): Time until the tower can attack again.
     last_attack (float): Time of the last attack.
     upgrade_cost (int): Cost to upgrade the tower.
+    image (Surface): The tower's sprite image
+    rect (Rect): The tower's position and size rectangle
     """
 
     def __init__(self):
+        super().__init__()
         self.x = 0
         self.y = 0
         self.level = 1
@@ -28,6 +38,51 @@ class Tower:
         self.cooldown = 0
         self.last_attack = 0
         self.upgrade_cost = 100
+
+        # Sprite properties
+        self.image = None
+        self.rect = None
+        self.radius = 15  # Default tower size
+
+    def load_image(self, image_path):
+        """Load and scale the tower image"""
+        try:
+            if image_path in TOWER_IMAGES:
+                self.image = TOWER_IMAGES[image_path]
+            else:
+                self.image = pygame.image.load(image_path).convert_alpha()
+                self.image = pygame.transform.scale(
+                    self.image, (self.radius * 4, self.radius * 4)
+                )
+                TOWER_IMAGES[image_path] = self.image
+
+            self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+
+        except pygame.error as e:
+            print(f"Error loading tower image '{image_path}': {e}")
+            # Create a default circular surface if image loading fails
+            self.image = pygame.Surface(
+                (self.radius * 2, self.radius * 2), pygame.SRCALPHA
+            )
+            pygame.draw.circle(
+                self.image,
+                (100, 100, 100),
+                (self.radius, self.radius),
+                self.radius,
+            )
+            self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+
+    def update(self):
+        """Update method required by pygame.sprite.Sprite"""
+        if self.rect:
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
+
+    def update_position(self, x, y):
+        """Update tower position and rectangle"""
+        self.x = x
+        self.y = y
+        self.rect.center = (int(x), int(y))
 
     def in_range(self, target):
         """
@@ -60,6 +115,8 @@ class Tower:
                 spawned = target.take_damage(self.damage)
                 balloons.extend(spawned)  # maybe one new lower‐tier
                 self.last_attack = current_time
+
+        return None
 
     def upgrade(self):
         """
@@ -94,14 +151,19 @@ class SniperTower(Tower):
         Initializes a SniperTower with preset stats.
         """
         super().__init__()
-        self.x = 0
-        self.y = 0
         self.level = 1
         self.range = 100000
         self.cost = 200
         self.damage = 2
         self.attack_speed = 1.0
         self.cooldown = 1.0
+        self.radius = 15
+        # Load the image
+        self.load_image("sniper_monkey.png")
+        # Initialize rect position after x,y are set
+        if self.rect:
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
 
 
 class DartTower(Tower):
@@ -114,11 +176,16 @@ class DartTower(Tower):
         Initializes a DartTower with preset stats.
         """
         super().__init__()
-        self.x = 0
-        self.y = 0
         self.level = 1
         self.range = 100
         self.cost = 100
         self.damage = 1
         self.attack_speed = 1.0
         self.cooldown = 1.0
+        self.radius = 15
+        # Load the image
+        self.load_image("dart_monkey.png")
+        # Initialize rect position after x,y are set
+        if self.rect:
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
