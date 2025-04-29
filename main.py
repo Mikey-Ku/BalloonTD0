@@ -3,6 +3,7 @@ Main game file that initializes and runs the game loop.
 """
 
 import pygame
+from rounds import rounds_config
 from track import load_waypoints_from_csv, Track
 from balloon import (
     RedBalloon,
@@ -20,16 +21,9 @@ class Game:
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
-        self.last_round = 10
+        self.last_round = 50
 
-        self.round_spawn_list = [
-            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
-            {"balloons": [("green", 10)], "spawn_delay": 300},
-            {"balloons": [("yellow", 10)], "spawn_delay": 300},
-            {"balloons": [("pink", 15)], "spawn_delay": 200},
-        ]
+        self.round_spawn_list = rounds_config
 
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
@@ -57,10 +51,6 @@ class Game:
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
-
-        self.rounds_config = [
-            {"balloons": [("pink", 5)], "spawn_delay": 200},
-        ]
 
     # Existing methods remain unchanged
     def draw_stats(self):
