@@ -23,9 +23,9 @@ class Game:
         self.last_round = 10
 
         self.round_spawn_list = [
-            {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
-            {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
-            {"balloons": [("blue", 20)], "spawn_delay": 300},
+            #  {"balloons": [("red", 20)], "spawn_delay": 500},  # in milliseconds
+            #  {"balloons": [("red", 10), ("blue", 10)], "spawn_delay": 500},
+            #  {"balloons": [("blue", 20)], "spawn_delay": 300},
             {"balloons": [("green", 10)], "spawn_delay": 300},
             {"balloons": [("yellow", 10)], "spawn_delay": 300},
             {"balloons": [("pink", 15)], "spawn_delay": 200},
