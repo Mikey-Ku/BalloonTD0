@@ -1,4 +1,4 @@
-import os
+import math
 import pygame
 
 # Add image cache at module level
@@ -38,45 +38,67 @@ class Tower(pygame.sprite.Sprite):
         self.cooldown = 0
         self.last_attack = 0
         self.upgrade_cost = 100
+        self.angle = 0
 
         # Sprite properties
         self.image = None
         self.rect = None
         self.radius = 15  # Default tower size
+        self.original_image = None  # Store original image for rotation
+        self.image_path = None  # Store image path for cache
 
     def load_image(self, image_path):
         """Load and scale the tower image"""
+        self.image_path = image_path  # Store for rotation
         try:
             if image_path in TOWER_IMAGES:
-                self.image = TOWER_IMAGES[image_path]
+                self.original_image = TOWER_IMAGES[image_path]
             else:
-                self.image = pygame.image.load(image_path).convert_alpha()
-                self.image = pygame.transform.scale(
-                    self.image, (self.radius * 4, self.radius * 4)
+                self.original_image = pygame.image.load(
+                    image_path
+                ).convert_alpha()
+                self.original_image = pygame.transform.scale(
+                    self.original_image, (self.radius * 4, self.radius * 4)
                 )
-                TOWER_IMAGES[image_path] = self.image
+                TOWER_IMAGES[image_path] = self.original_image
 
+            self.image = self.original_image.copy()
             self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
 
         except pygame.error as e:
             print(f"Error loading tower image '{image_path}': {e}")
             # Create a default circular surface if image loading fails
-            self.image = pygame.Surface(
+            self.original_image = pygame.Surface(
                 (self.radius * 2, self.radius * 2), pygame.SRCALPHA
             )
             pygame.draw.circle(
-                self.image,
+                self.original_image,
                 (100, 100, 100),
                 (self.radius, self.radius),
                 self.radius,
             )
+            self.image = self.original_image.copy()
             self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+
+    def update_angle(self, balloons):
+        """Update the angle to face the nearest balloon in range."""
+        target = self.find_target(balloons)
+        if target:
+            dx = target.x - self.x
+            dy = target.y - self.y
+            self.angle = (math.degrees(math.atan2(-dy, dx)) + 90) % 360
 
     def update(self):
         """Update method required by pygame.sprite.Sprite"""
         if self.rect:
             self.rect.centerx = int(self.x)
             self.rect.centery = int(self.y)
+        if self.original_image:
+            rotated_image = pygame.transform.rotate(
+                self.original_image, self.angle
+            )
+            self.image = rotated_image
+            self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
 
     def update_position(self, x, y):
         """Update tower position and rectangle"""
@@ -117,6 +139,11 @@ class Tower(pygame.sprite.Sprite):
         if current_time - self.last_attack >= interval_ms:
             target = self.find_target(balloons)
             if target:
+                dx = target.x - self.x
+                dy = target.y - self.y
+                self.angle = math.degrees(
+                    math.atan2(-dy, dx)
+                )  # Negative dy because pygame y-axis is down
                 balloons.remove(target)  # kill the old one
                 spawned = target.take_damage(self.damage)
                 balloons.extend(spawned)  # maybe one new lower‐tier
@@ -165,7 +192,7 @@ class SniperTower(Tower):
         self.cooldown = 1.0
         self.radius = 15
         # Load the image
-        self.load_image("sniper_monkey.png")
+        self.load_image("monkey_images/sniper_monkey.png")
         # Initialize rect position after x,y are set
         if self.rect:
             self.rect.centerx = int(self.x)
@@ -190,7 +217,7 @@ class DartTower(Tower):
         self.cooldown = 1.0
         self.radius = 15
         # Load the image
-        self.load_image("dart_monkey.png")
+        self.load_image("monkey_images/dart_monkey.png")
         # Initialize rect position after x,y are set
         if self.rect:
             self.rect.centerx = int(self.x)

@@ -5,7 +5,7 @@ A file containing the parent class for all Balloons as well as all subclasses.
 import pygame
 
 
-class Balloon:
+class Balloon(pygame.sprite.Sprite):
     """
     Base class for enemy balloons.
 
@@ -49,6 +49,7 @@ class Balloon:
             damage (int): Damage dealt to the player if balloon reaches the end.
             waypoints (list): List of coordinates the balloon moves through.
         """
+        super().__init__()
         self.x = x
         self.y = y
         self.health = health
@@ -61,16 +62,33 @@ class Balloon:
         self.current_waypoint = 0
         self.type = "base"
 
+        # Sprite properties
+        self.image = pygame.Surface(
+            (self.size * 2, self.size * 2), pygame.SRCALPHA
+        )
+        pygame.draw.circle(
+            self.image, self.color, (self.size, self.size), self.size
+        )  # draw a circle on the image
+        self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+        self.image_path = None  # Path to the balloon image (if any)
+
+    def load_image(self, image_path):
+        """Load and scale the balloon image"""
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(
+            self.image, (self.size * 5, self.size * 5)
+        )
+        self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+        self.image_path = image_path  # Store the image path
+
     def draw(self, screen):
         """
-        Draws the balloon on the screen as a circle.
+        Draws the balloon on the screen.
 
         Args:
             screen (pygame.Surface?): The surface to draw the balloon on.
         """
-        pygame.draw.circle(
-            screen, self.color, (int(self.x), int(self.y)), self.size
-        )
+        screen.blit(self.image, self.rect)
 
     def move(self):
         """
@@ -85,6 +103,7 @@ class Balloon:
             return True
 
         self.x, self.y = self.waypoints[self.current_waypoint]
+        self.rect.center = (int(self.x), int(self.y))  # Update rect position
         return False
 
     def take_damage(self, amount):
@@ -111,6 +130,10 @@ class Balloon:
             # preserve position and progress
             child.x, child.y = self.x, self.y
             child.current_waypoint = self.current_waypoint
+            child.rect.center = (
+                int(self.x),
+                int(self.y),
+            )  # Update rect position
             return [child]
 
         # otherwise it's popped
@@ -141,6 +164,7 @@ class RedBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "red"
+        self.load_image("balloon_images/red_balloon.png")
 
 
 class BlueBalloon(Balloon):
@@ -167,6 +191,7 @@ class BlueBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "blue"
+        self.load_image("balloon_images/blue_balloon.png")
 
 
 class GreenBalloon(Balloon):
@@ -190,6 +215,7 @@ class GreenBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "green"
+        self.load_image("balloon_images/red_balloon.png")
 
 
 class YellowBalloon(Balloon):
@@ -213,6 +239,7 @@ class YellowBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "yellow"
+        self.load_image("balloon_images/yellow_balloon.png")
 
 
 class PinkBalloon(Balloon):
@@ -236,6 +263,7 @@ class PinkBalloon(Balloon):
             waypoints=waypoints,
         )
         self.type = "pink"
+        self.load_image("balloon_images/pink_balloon.png")
 
 
 balloon_tiers = [
