@@ -22,6 +22,7 @@ class Track:
         self.height = height
         self.waypoints = []
         self.towers = []
+        self.tower_locations = []
         self.valid_tower_positions = set()
         self.tower_invalid_radius = 15
 
@@ -50,6 +51,13 @@ class Track:
             distance = math.sqrt((x - wx) ** 2 + (y - wy) ** 2)
             if distance < self.tower_invalid_radius:
                 return False
+        for tower in self.tower_locations:
+
+            wx, wy = tower
+            #  print(wx)
+            distance = math.sqrt((x - wx) ** 2 + (y - wy) ** 2)
+            if distance < 30:
+                return False
         return True
 
     def update_valid_positions(self):
@@ -67,6 +75,8 @@ class Track:
         x, y = tower.position
         if self.is_valid_tower_position(x, y):
             self.towers.append(tower)
+            self.tower_locations.append((x, y))
+            print(self.tower_locations)
             return True
         return False
 
