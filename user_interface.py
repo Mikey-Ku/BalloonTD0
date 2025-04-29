@@ -122,6 +122,18 @@ class GameUI:
                 200,
             ),
         ]
+        self.play_pause_buttons = [
+            PausePlayButton(
+                (10, 10, 100, 40),
+                "Pause",
+                lambda: self.game.toggle_pause(),
+            ),
+            PausePlayButton(
+                (120, 10, 100, 40),
+                "Play",
+                lambda: self.game.toggle_play(),
+            ),
+        ]
 
         self.selected_tower_radius = 15
 
