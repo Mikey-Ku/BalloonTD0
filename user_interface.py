@@ -92,7 +92,7 @@ class GameUI:
 
     def select_tower(self, tower_type):
         """Start tower placement if player has enough money."""
-        costs = {"dart": 100, "sniper": 200, "bomb": 300}
+        costs = {"dart": 100, "sniper": 200}
         cost = costs[tower_type]
 
         if self.game.money >= cost:
@@ -117,9 +117,18 @@ class GameUI:
                 ranges[self.selected_tower_type],
                 1,
             )
-            pygame.draw.circle(
-                screen, color, mouse_pos, self.selected_tower_radius
-            )
+
+            # Draw the actual tower sprite at the mouse position
+            tower_classes = {
+                "dart": DartTower,
+                "sniper": SniperTower,
+                # "bomb": BombTower,
+            }
+            tower_preview = tower_classes[self.selected_tower_type]()
+            tower_preview.x, tower_preview.y = mouse_pos
+            tower_preview.update_position(*mouse_pos)
+            tower_preview.update()
+            screen.blit(tower_preview.image, tower_preview.rect)
 
         # Draw selected tower indicator
         for tower in self.game.towers:
