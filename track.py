@@ -31,6 +31,10 @@ class Track:
             distance = math.sqrt((x - wx) ** 2 + (y - wy) ** 2)
             if distance < self.tower_invalid_radius:
                 return False
+        for tower in self.towers:
+            distance = math.sqrt((x - tower.x) ** 2 + (y - tower.y) ** 2)
+            if distance < 30:
+                return False
         return True
 
     def update_valid_positions(self):
@@ -43,20 +47,20 @@ class Track:
                 if self.is_valid_tower_position(x, y):
                     self.valid_tower_positions.add((x, y))
 
-    def add_tower(self, tower):
-        """Add a tower to the map if position is valid"""
-        x, y = tower.position
-        if self.is_valid_tower_position(x, y):
-            self.towers.append(tower)
-            return True
-        return False
+    # def add_tower(self, tower):
+    #     """Add a tower to the map if position is valid"""
+    #     x, y = tower.position
+    #     if self.is_valid_tower_position(x, y):
+    #         self.towers.append(tower)
+    #         return True
+    #     return False
 
-    def remove_tower(self, tower):
-        """Remove a tower from the map"""
-        if tower in self.towers:
-            self.towers.remove(tower)
-            return True
-        return False
+    # def remove_tower(self, tower):
+    #     """Remove a tower from the map"""
+    #     if tower in self.towers:
+    #         self.towers.remove(tower)
+    #         return True
+    #     return False
 
     def draw(self, screen):
         """Draw the track and path on screen"""
