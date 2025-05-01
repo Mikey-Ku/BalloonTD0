@@ -320,7 +320,7 @@ class MoabBalloon(Balloon):
         children = []
         used_pixels = set()
         num_kids = 40
-        spread_radius = 10
+        spread_radius = 20
 
         while len(children) < num_kids:
             # random point in circle

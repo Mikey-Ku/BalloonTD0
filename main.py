@@ -46,7 +46,7 @@ class Game:
         self.balloons = []
         self.towers = []
         self.tower_sprites = pygame.sprite.Group()
-        self.money = 200
+        self.money = 2000
         self.lives = 100
         self.round_started = False
         self.balloons_to_spawn = 10
@@ -61,7 +61,6 @@ class Game:
         self.balloons_to_spawn = 0
         self.current_round = 1
         self.passive_income_amount = 2
-        self.last_passive_time = pygame.time.get_ticks()  # initialize the timer
         self.speed_multiplier = 1  # Normal speed
         self.play_button_rect = pygame.Rect(700, 10, 90, 40)  # Top-right corner
 
@@ -159,14 +158,6 @@ class Game:
             # Replace current_time with self.clock_ticks
             current_time = self.clock_ticks
 
-            # passive income only during an active round
-            if self.round_started:
-                elapsed = current_time - self.last_passive_time
-                if elapsed >= 1000:
-                    secs = elapsed // 1000
-                    self.money += secs * self.passive_income_amount
-                    self.last_passive_time += secs * 1000
-
             self.screen.blit(self.background, (0, 0))
 
             # Event handling
@@ -177,14 +168,12 @@ class Game:
                     if event.key == pygame.K_SPACE and not self.round_started:
                         self.round_started = True
                         self.last_spawn_time = current_time
-                        self.last_passive_time = current_time
                         self.prepare_round()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.play_button_rect.collidepoint(event.pos):
                         if not self.round_started:
                             self.round_started = True
                             self.last_spawn_time = current_time
-                            self.last_passive_time = current_time
                             self.prepare_round()
                         else:
                             self.toggle_speed()
