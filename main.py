@@ -126,15 +126,15 @@ class Game:
 
         while running:
             current_time = pygame.time.get_ticks()
-            # give passive income every full second
-            elapsed = current_time - self.last_passive_time
-            if elapsed >= 1000:
-                # how many whole seconds passed?
-                secs = elapsed // 1000
-                # award $2 per second
-                self.money += secs * self.passive_income_amount
-                # advance our timer forward
-                self.last_passive_time += secs * 1000
+
+            # passive income only during an active round
+            if self.round_started:
+                elapsed = current_time - self.last_passive_time
+                if elapsed >= 1000:
+                    secs = elapsed // 1000
+                    self.money += secs * self.passive_income_amount
+                    self.last_passive_time += secs * 1000
+
             self.screen.blit(self.background, (0, 0))
 
             # Event handling
@@ -145,6 +145,7 @@ class Game:
                     if event.key == pygame.K_SPACE and not self.round_started:
                         self.round_started = True
                         self.last_spawn_time = current_time
+                        self.last_passive_time = current_time
                         self.prepare_round()
                 self.ui.handle_event(event)
 
