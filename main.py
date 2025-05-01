@@ -27,6 +27,10 @@ class Game:
         self.round_spawn_list = rounds_config
 
         pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.music.load("background_music.mp3")
+        pygame.mixer.music.play(loops=-1)
+
         self.clock_ticks = 0  # Add this line after pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
