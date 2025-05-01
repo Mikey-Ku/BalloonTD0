@@ -260,7 +260,7 @@ class SuperTower(Tower):
         self.level = 1
         self.range = 300
         self.cost = 500
-        self.damage = 1.5
+        self.damage = 1
         self.attack_speed = 2.5
         self.cooldown = 0.7
         self.radius = 15
