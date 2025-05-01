@@ -3,6 +3,19 @@ A file containing the parent class for all Balloons as well as all subclasses.
 """
 
 import pygame
+import random
+import math
+
+_IMAGE_CACHE = {}
+
+
+def load_cached(path, size):
+    key = (path, size)
+    if key not in _IMAGE_CACHE:
+        surf = pygame.image.load(path).convert_alpha()
+        surf = pygame.transform.scale(surf, size)
+        _IMAGE_CACHE[key] = surf
+    return _IMAGE_CACHE[key].copy()
 
 
 class Balloon(pygame.sprite.Sprite):
@@ -71,7 +84,11 @@ class Balloon(pygame.sprite.Sprite):
         pygame.draw.circle(
             self.image, self.color, (self.size, self.size), self.size
         )  # draw a circle on the image
-        self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+        self.offset = (0, 0)
+        self.rect = self.image.get_rect(
+            center=(int(self.x + self.offset[0]), int(self.y + self.offset[1]))
+        )
+
         self.image_path = None  # Path to the balloon image (if any)
 
     def load_image(self, image_path):
@@ -90,6 +107,9 @@ class Balloon(pygame.sprite.Sprite):
         Args:
             screen (pygame.Surface?): The surface to draw the balloon on.
         """
+        # always draw at path position + permanent offset
+        ox, oy = self.offset
+        self.rect.center = (int(self.x + ox), int(self.y + oy))
         screen.blit(self.image, self.rect)
 
     def move(self):
@@ -99,6 +119,12 @@ class Balloon(pygame.sprite.Sprite):
         Returns:
             bool: True if the balloon has reached the end of the path.
         """
+        # if this balloon was just spawned from a MOAB, hold its position
+        skip = getattr(self, "skip_frames", 0)
+        if skip > 0:
+            self.skip_frames = skip - 1
+            return False
+
         self.current_waypoint += int(self.speed)
 
         if self.current_waypoint >= len(self.waypoints):
@@ -110,36 +136,24 @@ class Balloon(pygame.sprite.Sprite):
 
     def take_damage(self, amount):
         """
-        Downgrade this balloon by `amount` tiers:
-          - If idx - amount >= 0: spawn one balloon of that lower tier.
-          - Else: pop (no spawn).
+        Downgrade by `amount` tiers, popping if you go below tier 0.
         """
-        # build a list of just the tier names
         tier_names = [name for name, _ in balloon_tiers]
-        try:
-            idx = tier_names.index(self.type)
-        except ValueError:
-            # unknown type → just die
-            return []
+        idx = tier_names.index(self.type)
 
-        # compute target tier
         new_idx = idx - amount
-
-        # if still in range, spawn exactly one of that tier
         if new_idx >= 0:
             _, ctor = balloon_tiers[new_idx]
             child = ctor(self.waypoints)
             child.base_reward = self.base_reward
-            # preserve position and progress
+            # preserve position, progress, offset, freeze
             child.x, child.y = self.x, self.y
             child.current_waypoint = self.current_waypoint
-            child.rect.center = (
-                int(self.x),
-                int(self.y),
-            )  # Update rect position
+            child.offset = getattr(self, "offset", (0, 0))
+            child.skip_frames = getattr(self, "skip_frames", 0)
             return [child]
 
-        # otherwise it's popped
+        # new_idx < 0 → popped with no spawn
         return []
 
 
@@ -180,14 +194,14 @@ class BlueBalloon(Balloon):
 
     def __init__(self, waypoints):
         """
-        Initializes a RedBalloon with preset stats.
+        Initializes a BlueBalloon preset stats.
         """
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
             health=2,
             color=(0, 0, 255),
-            speed=1.0,
+            speed=1.4,
             size=10,
             reward=5,
             damage=2,
@@ -205,20 +219,24 @@ class GreenBalloon(Balloon):
         type (str): The type identifier for the balloon ("green").
     """
 
+    BASE_IMAGE = "balloon_images/green_balloon.png"
+
     def __init__(self, waypoints):
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
             health=3,
             color=(0, 255, 0),
-            speed=1.0,
+            speed=1.8,
             size=10,
             reward=7,
             damage=3,
             waypoints=waypoints,
         )
         self.type = "green"
-        self.load_image("balloon_images/green_balloon.png")
+        img_size = (self.size * 5, self.size * 5)
+        self.image = load_cached(GreenBalloon.BASE_IMAGE, img_size)
+        self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
 
 
 class YellowBalloon(Balloon):
@@ -235,7 +253,7 @@ class YellowBalloon(Balloon):
             y=waypoints[0][1],
             health=4,
             color=(255, 255, 0),
-            speed=7.0,
+            speed=7,
             size=10,
             reward=10,
             damage=5,
@@ -269,10 +287,74 @@ class PinkBalloon(Balloon):
         self.load_image("balloon_images/pink_balloon.png")
 
 
+class MoabBalloon(Balloon):
+    """
+    A multi-hit “MOAB” that takes 50 damage to die,
+    then bursts into 40 GreenBalloons scattered around its death spot.
+    """
+
+    def __init__(self, waypoints):
+        super().__init__(
+            x=waypoints[0][0],
+            y=waypoints[0][1],
+            health=50,  # must absorb 50hp before popping
+            color=(128, 128, 128),  # grey
+            speed=1.0,  # match other balloons so it actually moves
+            size=20,  # visually large
+            reward=400,  # reward if it reaches the end
+            damage=10,  # lives lost if it reaches the end
+            waypoints=waypoints,
+        )
+        self.type = "moab"
+        # if you have a custom MOAB sprite, uncomment:
+        self.load_image("balloon_images/moab.png")
+
+    def take_damage(self, amount):
+        # subtract damage
+        self.health -= amount
+        if self.health > 0:
+            return [self]
+
+        # spawn 40 greens in a tight cluster (radius=20px),
+        # but make sure no two share the same int(x,y) offset
+        children = []
+        used_pixels = set()
+        num_kids = 40
+        spread_radius = 20
+
+        while len(children) < num_kids:
+            # random point in circle
+            theta = random.uniform(0, 2 * math.pi)
+            r = random.uniform(0, spread_radius)
+            dx = math.cos(theta) * r
+            dy = math.sin(theta) * r
+
+            # round to int pixels to test overlap
+            pix = (int(dx), int(dy))
+            if pix in used_pixels:
+                continue
+            used_pixels.add(pix)
+
+            g = GreenBalloon(self.waypoints)
+            # start exactly at the MOAB’s path position
+            g.x, g.y = self.x, self.y
+            g.current_waypoint = self.current_waypoint
+
+            # permanent draw‐time offset
+            g.offset = (dx, dy)
+            # hold for a few frames so you actually see the scatter
+            g.skip_frames = 12
+
+            children.append(g)
+
+        return children
+
+
 balloon_tiers = [
     ("red", RedBalloon),
     ("blue", BlueBalloon),
     ("green", GreenBalloon),
     ("yellow", YellowBalloon),
     ("pink", PinkBalloon),
+    ("moab", MoabBalloon),
 ]

@@ -151,7 +151,7 @@ class GameUI:
             button.draw(screen, self.game.money)
         if self.selected_tower_type:
             mouse_pos = pygame.mouse.get_pos()
-            ranges = {"dart": 120, "sniper": 250, "bomb": 150}
+            ranges = {"dart": 120, "sniper": 0, "bomb": 150}
 
             is_valid = self.game.track.is_valid_tower_position(*mouse_pos)
 

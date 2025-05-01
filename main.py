@@ -11,6 +11,7 @@ from balloon import (
     GreenBalloon,
     YellowBalloon,
     PinkBalloon,
+    MoabBalloon,
 )
 from user_interface import GameUI
 
@@ -38,7 +39,7 @@ class Game:
         self.balloons = []
         self.towers = []
         self.tower_sprites = pygame.sprite.Group()
-        self.money = 1000
+        self.money = 200
         self.lives = 100
         self.round_started = False
         self.balloons_to_spawn = 10
@@ -51,6 +52,8 @@ class Game:
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
+        self.passive_income_amount = 2
+        self.last_passive_time = pygame.time.get_ticks()  # initialize the timer
 
     # Existing methods remain unchanged
     def draw_stats(self):
@@ -123,9 +126,18 @@ class Game:
 
         while running:
             current_time = pygame.time.get_ticks()
-            # Draw background instead of white fill
+            # give passive income every full second
+            elapsed = current_time - self.last_passive_time
+            if elapsed >= 1000:
+                # how many whole seconds passed?
+                secs = elapsed // 1000
+                # award $2 per second
+                self.money += secs * self.passive_income_amount
+                # advance our timer forward
+                self.last_passive_time += secs * 1000
             self.screen.blit(self.background, (0, 0))
 
+            # Event handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -134,15 +146,12 @@ class Game:
                         self.round_started = True
                         self.last_spawn_time = current_time
                         self.prepare_round()
-
-                # Handle UI events
                 self.ui.handle_event(event)
 
-            # spawn balloons
+            # Spawn balloons
             if self.round_started and self.balloons_queue:
                 if current_time - self.last_spawn_time >= self.spawn_delay:
                     balloon_type = self.balloons_queue.pop(0)
-
                     if balloon_type == "red":
                         self.balloons.append(RedBalloon(self.waypoints))
                     elif balloon_type == "blue":
@@ -153,58 +162,59 @@ class Game:
                         self.balloons.append(YellowBalloon(self.waypoints))
                     elif balloon_type == "pink":
                         self.balloons.append(PinkBalloon(self.waypoints))
-
+                    elif balloon_type == "moab":
+                        self.balloons.append(MoabBalloon(self.waypoints))
                     self.last_spawn_time = current_time
 
-            # move + draw balloons
-            for balloon in self.balloons[:]:
-                reached_end = balloon.move()
-                # Draws the balloon using its sprite image from balloon.py
-                balloon.draw(self.screen)
-
-                if reached_end:
-                    self.lives -= balloon.damage
-                    self.balloons.remove(balloon)
-
-                elif balloon.health <= 0:
-                    self.money += balloon.reward
-                    self.balloons.remove(balloon)
-
-            # End the round when no balloons are left and none are spawning
-            if (
-                self.round_started
-                and not self.balloons_queue
-                and len(self.balloons) == 0
-            ):
-                self.round_started = False
-                self.current_round += 1
-
+            # 1) Towers fire first, so pops replace visuals immediately
             for tower in self.towers:
                 tower.update_angle(self.balloons)
-
                 popped = tower.attack(self.balloons, current_time)
                 if popped:
                     for balloon, reward in popped:
                         self.money += reward
-
-                # Update sprite position if it has a rect
                 if hasattr(tower, "rect") and tower.rect:
                     tower.rect.centerx = int(tower.x)
                     tower.rect.centery = int(tower.y)
                 tower.update()
 
-            # Draw tower sprites instead of circles
+            # 2) Now move & draw all remaining balloons
+            for balloon in self.balloons[:]:
+                reached_end = balloon.move()
+                if reached_end:
+                    self.lives -= balloon.damage
+                    self.balloons.remove(balloon)
+                    continue
+
+                # draw living balloons
+                balloon.draw(self.screen)
+                if balloon.health <= 0:
+                    # (this handles any stragglers popped by non-tower effects)
+                    self.money += balloon.reward
+                    self.balloons.remove(balloon)
+
+            # Draw tower sprites on top of balloons
             self.tower_sprites.draw(self.screen)
 
-            # draw UI
+            # Draw UI and stats
             self.ui.draw(self.screen)
             self.draw_stats()
 
             pygame.display.flip()
             clock.tick(60)
 
-            # Ends Game
-            if self.last_round < self.current_round or self.lives <= 0:
+            # round-complete detection:
+            if (
+                self.round_started
+                and not self.balloons
+                and not self.balloons_queue
+            ):
+                self.current_round += 1
+                self.money += 100
+                self.round_started = False
+
+            # End game or advance round
+            if self.current_round > self.last_round or self.lives <= 0:
                 self.end_game()
                 break
 
