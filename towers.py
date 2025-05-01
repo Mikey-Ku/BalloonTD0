@@ -88,7 +88,7 @@ class Tower(pygame.sprite.Sprite):
             dy = target.y - self.y
             self.angle = (math.degrees(math.atan2(-dy, dx)) + 90) % 360
 
-    def update(self):
+    def update(self, speed_multiplier=1):
         """Update method required by pygame.sprite.Sprite"""
         if self.rect:
             self.rect.centerx = int(self.x)
@@ -99,6 +99,9 @@ class Tower(pygame.sprite.Sprite):
             )
             self.image = rotated_image
             self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
+        # Update attack speed based on multiplier
+        self.current_attack_speed = self.attack_speed * speed_multiplier
+        self.current_cooldown = self.cooldown / speed_multiplier
 
     def update_position(self, x, y):
         """Update tower position and rectangle"""
@@ -138,7 +141,14 @@ class Tower(pygame.sprite.Sprite):
         """
         Attack and return a list of (balloon, reward) pairs for money collection.
         """
-        interval_ms = 1000 / self.attack_speed
+        rewards = []
+        if not balloons:
+            return rewards
+
+        if current_time - self.last_attack < (self.current_cooldown * 1000):
+            return rewards
+
+        interval_ms = 1000 / self.current_attack_speed
         popped = []
 
         if current_time - self.last_attack >= interval_ms:

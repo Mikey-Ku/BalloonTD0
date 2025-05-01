@@ -27,6 +27,7 @@ class Game:
         self.round_spawn_list = rounds_config
 
         pygame.init()
+        self.clock_ticks = 0  # Add this line after pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
         self.background = pygame.image.load(
@@ -43,8 +44,9 @@ class Game:
         self.lives = 100
         self.round_started = False
         self.balloons_to_spawn = 10
-        self.spawn_delay = 500
+        self.spawn_delay = 500  # Default spawn delay in milliseconds
         self.last_spawn_time = 0
+        self.next_balloon_time = 0  # Track exact spawn timing
         self.current_wave = 1
         self.ui = GameUI(self)
         self.font = pygame.font.SysFont(None, 36)
@@ -54,10 +56,18 @@ class Game:
         self.current_round = 1
         self.passive_income_amount = 2
         self.last_passive_time = pygame.time.get_ticks()  # initialize the timer
+        self.speed_multiplier = 1  # Normal speed
+        self.play_button_rect = pygame.Rect(700, 10, 90, 40)  # Top-right corner
 
-    # Existing methods remain unchanged
+    def toggle_speed(self):
+        """Toggle between normal and 2x speed."""
+        if self.speed_multiplier == 1:
+            self.speed_multiplier = 2
+        else:
+            self.speed_multiplier = 1
+
     def draw_stats(self):
-        """Draw money, lives, and round counter on screen"""
+        """Draw money, lives, round counter, and play/speed button on screen."""
         money_text = self.font.render(f"Money: ${self.money}", True, (0, 0, 0))
         lives_text = self.font.render(f"Lives: {self.lives}", True, (0, 0, 0))
         round_text = self.font.render(
@@ -66,7 +76,18 @@ class Game:
 
         self.screen.blit(money_text, (10, 10))
         self.screen.blit(lives_text, (10, 50))
-        self.screen.blit(round_text, (650, 10))  # top-right-ish
+        self.screen.blit(round_text, (600, 10))  # Shifted left to avoid overlap
+
+        button_text = (
+            "Play"
+            if not self.round_started
+            else "1x" if self.speed_multiplier == 1 else "2x"
+        )
+        pygame.draw.rect(self.screen, (100, 100, 100), self.play_button_rect)
+        pygame.draw.rect(self.screen, (0, 0, 0), self.play_button_rect, 2)
+        text_surface = self.font.render(button_text, True, (0, 0, 0))
+        text_rect = text_surface.get_rect(center=self.play_button_rect.center)
+        self.screen.blit(text_surface, text_rect)
 
     def prepare_round(self):
         """Prepare the balloon queue based on current round's config."""
@@ -125,7 +146,13 @@ class Game:
         running = True
 
         while running:
-            current_time = pygame.time.get_ticks()
+            # Calculate delta time from clock
+            dt = clock.tick(60 * self.speed_multiplier)
+            self.clock_ticks += dt
+
+            # Replace current_time with self.clock_ticks
+            current_time = self.clock_ticks
+
             # give passive income every full second
             elapsed = current_time - self.last_passive_time
             if elapsed >= 1000:
@@ -145,12 +172,22 @@ class Game:
                     if event.key == pygame.K_SPACE and not self.round_started:
                         self.round_started = True
                         self.last_spawn_time = current_time
+                        self.last_passive_time = current_time
                         self.prepare_round()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.play_button_rect.collidepoint(event.pos):
+                        if not self.round_started:
+                            self.round_started = True
+                            self.last_spawn_time = current_time
+                            self.last_passive_time = current_time
+                            self.prepare_round()
+                        else:
+                            self.toggle_speed()
                 self.ui.handle_event(event)
 
             # Spawn balloons
             if self.round_started and self.balloons_queue:
-                if current_time - self.last_spawn_time >= self.spawn_delay:
+                if self.clock_ticks >= self.next_balloon_time:
                     balloon_type = self.balloons_queue.pop(0)
                     if balloon_type == "red":
                         self.balloons.append(RedBalloon(self.waypoints))
@@ -164,10 +201,17 @@ class Game:
                         self.balloons.append(PinkBalloon(self.waypoints))
                     elif balloon_type == "moab":
                         self.balloons.append(MoabBalloon(self.waypoints))
-                    self.last_spawn_time = current_time
+                    # Adjust spawn delay based on speed multiplier
+                    adjusted_spawn_delay = (
+                        self.spawn_delay / self.speed_multiplier
+                    )
+                    self.next_balloon_time = (
+                        self.clock_ticks + adjusted_spawn_delay
+                    )
 
             # 1) Towers fire first, so pops replace visuals immediately
             for tower in self.towers:
+                tower.update(self.speed_multiplier)
                 tower.update_angle(self.balloons)
                 popped = tower.attack(self.balloons, current_time)
                 if popped:
@@ -201,7 +245,6 @@ class Game:
             self.draw_stats()
 
             pygame.display.flip()
-            clock.tick(60)
 
             # round-complete detection:
             if (

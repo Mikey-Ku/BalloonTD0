@@ -60,38 +60,73 @@ class TowerPurchasingUI:
         return False
 
 
-class PausePlayButton:
-    """Class that handles the pause/play button."""
+class TowerMenu:
+    """Handles the collapsible tower menu."""
 
-    def __init__(self, rect, text, callback):
-        """
-        Initialize the button with a rectangle, text, and callback function.
-
-        Args:
-            rect: Tuple (x, y, width, height) for the button
-            text: Button text
-            callback: Function to call when clicked
-        """
+    def __init__(self, rect, game_ui):
         self.rect = pygame.Rect(rect)
-        self.text = text
-        self.callback = callback
+        self.expanded = True
+        self.game_ui = game_ui
         self.font = pygame.font.SysFont(None, 24)
+        # Initialize toggle button on the left side
+        self.toggle_button_rect = pygame.Rect(
+            self.rect.x - 30, self.rect.y, 30, 30
+        )
+        # Initialize reopen button to the right of where the menu would be
+        self.reopen_button_rect = pygame.Rect(
+            self.rect.x + self.rect.width + 10, self.rect.y, 80, 30
+        )
 
     def draw(self, screen):
-        """Draw the button on the screen."""
-        pygame.draw.rect(screen, (100, 100, 100), self.rect)
-        pygame.draw.rect(screen, (0, 0, 0), self.rect, 2)
+        """Draw the tower menu."""
+        if self.expanded:
+            # Draw toggle button
+            pygame.draw.rect(screen, (100, 100, 100), self.toggle_button_rect)
+            pygame.draw.rect(screen, (0, 0, 0), self.toggle_button_rect, 2)
+            text_surface = self.font.render("<", True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+                center=self.toggle_button_rect.center
+            )
+            screen.blit(text_surface, text_rect)
 
-        text_surface = self.font.render(self.text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        screen.blit(text_surface, text_rect)
+            # Draw main menu
+            pygame.draw.rect(screen, (200, 200, 200), self.rect)
+            pygame.draw.rect(screen, (0, 0, 0), self.rect, 2)
+            for button in self.game_ui.purchase_buttons:
+                button.draw(screen, self.game_ui.game.money)
+        else:
+            # Only draw reopen button when collapsed
+            self.reopen_button_rect.x = 700  # Match play button x-coordinate
+            self.reopen_button_rect.y = 60  # Keep same y as expanded menu
+            pygame.draw.rect(screen, (200, 200, 200), self.reopen_button_rect)
+            pygame.draw.rect(screen, (0, 0, 0), self.reopen_button_rect, 2)
+            reopen_text = self.font.render("Menu", True, (0, 0, 0))
+            reopen_text_rect = reopen_text.get_rect(
+                center=self.reopen_button_rect.center
+            )
+            screen.blit(reopen_text, reopen_text_rect)
 
     def handle_event(self, event):
-        """Handle events for the button."""
+        """Handle events for the tower menu."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if self.rect.collidepoint(event.pos):
-                self.callback()
+            # Handle toggle button
+            if self.toggle_button_rect.collidepoint(event.pos):
+                self.expanded = not self.expanded
                 return True
+
+            # Handle reopen button when collapsed
+            if not self.expanded and self.reopen_button_rect.collidepoint(
+                event.pos
+            ):
+                self.expanded = True
+                return True
+
+            # Handle purchase buttons when expanded
+            if self.expanded:
+                for button in self.game_ui.purchase_buttons:
+                    if button.handle_event(event):
+                        return True
+
         return False
 
 
@@ -106,34 +141,29 @@ class GameUI:
 
         button_width = 140
         button_height = 40
-        start_y = 550
+        start_y = 100
 
         self.purchase_buttons = [
             TowerPurchasingUI(
-                (10, start_y, button_width, button_height),
+                (660, start_y, button_width, button_height),
                 "Dart Tower $100",
                 lambda: self.select_tower("dart"),
                 100,
             ),
             TowerPurchasingUI(
-                (button_width + 20, start_y, button_width, button_height),
+                (
+                    660,
+                    start_y + button_height + 10,
+                    button_width,
+                    button_height,
+                ),
                 "Sniper Tower $200",
                 lambda: self.select_tower("sniper"),
                 200,
             ),
         ]
-        self.play_pause_buttons = [
-            PausePlayButton(
-                (10, 10, 100, 40),
-                "Pause",
-                lambda: self.game.toggle_pause(),
-            ),
-            PausePlayButton(
-                (120, 10, 100, 40),
-                "Play",
-                lambda: self.game.toggle_play(),
-            ),
-        ]
+
+        self.tower_menu = TowerMenu((650, 60, button_width + 20, 200), self)
 
         self.selected_tower_radius = 15
 
@@ -147,8 +177,7 @@ class GameUI:
 
     def draw(self, screen):
         """Draw all UI elements and tower preview."""
-        for button in self.purchase_buttons:
-            button.draw(screen, self.game.money)
+        self.tower_menu.draw(screen)
         if self.selected_tower_type:
             mouse_pos = pygame.mouse.get_pos()
             ranges = {"dart": 120, "sniper": 0, "bomb": 150}
@@ -228,8 +257,12 @@ class GameUI:
                 self.upgrade_rect = upgrade_rect
                 self.sell_rect = sell_rect
 
+        self.game.draw_stats()  # Ensure play/speed button is drawn
+
     def handle_event(self, event):
         """Handle UI events including tower placement."""
+        if self.tower_menu.handle_event(event):
+            return True
         # Handle tower placement
         if self.selected_tower_type and event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
@@ -290,9 +323,6 @@ class GameUI:
                     return True
             if self.selected_tower:
                 self.selected_tower = None
-                return True
-        for button in self.purchase_buttons:
-            if button.handle_event(event):
                 return True
 
         return False
