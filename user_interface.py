@@ -1,7 +1,7 @@
 """Module that defines the user interface for the game."""
 
 import pygame
-from towers import DartTower, SniperTower
+from towers import DartTower, SniperTower, SuperTower, TacTower
 
 
 class TowerPurchasingUI:
@@ -141,11 +141,11 @@ class GameUI:
 
         button_width = 140
         button_height = 40
-        start_y = 100
+        start_y = 70
 
         self.purchase_buttons = [
             TowerPurchasingUI(
-                (660, start_y, button_width, button_height),
+                (660, start_y - 5, button_width, button_height),
                 "Dart Tower $100",
                 lambda: self.select_tower("dart"),
                 100,
@@ -153,13 +153,35 @@ class GameUI:
             TowerPurchasingUI(
                 (
                     660,
-                    start_y + button_height + 10,
+                    start_y + button_height + 5,
                     button_width,
                     button_height,
                 ),
                 "Sniper Tower $200",
                 lambda: self.select_tower("sniper"),
                 200,
+            ),
+            TowerPurchasingUI(
+                (
+                    660,
+                    start_y + (2 * button_height) + 15,
+                    button_width,
+                    button_height,
+                ),
+                "Tac Tower $300",
+                lambda: self.select_tower("tac"),
+                300,
+            ),
+            TowerPurchasingUI(
+                (
+                    660,
+                    start_y + (3 * button_height) + 25,
+                    button_width,
+                    button_height,
+                ),
+                "Super Tower $500",
+                lambda: self.select_tower("super"),
+                500,
             ),
         ]
 
@@ -169,7 +191,7 @@ class GameUI:
 
     def select_tower(self, tower_type):
         """Start tower placement if player has enough money."""
-        costs = {"dart": 100, "sniper": 200}
+        costs = {"dart": 100, "sniper": 200, "tac": 300, "super": 500}
         cost = costs[tower_type]
 
         if self.game.money >= cost:
@@ -180,7 +202,7 @@ class GameUI:
         self.tower_menu.draw(screen)
         if self.selected_tower_type:
             mouse_pos = pygame.mouse.get_pos()
-            ranges = {"dart": 120, "sniper": 50, "bomb": 150}
+            ranges = {"dart": 120, "sniper": 50, "tac": 100, "super": 360}
 
             is_valid = self.game.track.is_valid_tower_position(*mouse_pos)
 
@@ -198,6 +220,8 @@ class GameUI:
             tower_classes = {
                 "dart": DartTower,
                 "sniper": SniperTower,
+                "tac": TacTower,
+                "super": SuperTower,
             }
             tower_preview = tower_classes[self.selected_tower_type]()
             tower_preview.x, tower_preview.y = mouse_pos
@@ -271,9 +295,15 @@ class GameUI:
                 tower_classes = {
                     "dart": DartTower,
                     "sniper": SniperTower,
-                    # "bomb": BombTower,
+                    "tac": TacTower,
+                    "super": SuperTower,
                 }
-                tower_costs = {"dart": 100, "sniper": 200, "bomb": 300}
+                tower_costs = {
+                    "dart": 100,
+                    "sniper": 200,
+                    "tac": 300,
+                    "super": 500,
+                }
 
                 tower = tower_classes[self.selected_tower_type]()
                 tower.x, tower.y = pos

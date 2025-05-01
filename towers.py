@@ -245,3 +245,49 @@ class DartTower(Tower):
         if self.rect:
             self.rect.centerx = int(self.x)
             self.rect.centery = int(self.y)
+
+
+class SuperTower(Tower):
+    """
+    Initializes a SuperTower with preset stats.
+    """
+
+    def __init__(self):
+        """
+        Initializes a SuperTower with preset stats.
+        """
+        super().__init__()
+        self.level = 1
+        self.range = 300
+        self.cost = 500
+        self.damage = 1.5
+        self.attack_speed = 2.5
+        self.cooldown = 0.7
+        self.radius = 15
+        self.load_image("monkey_images/super_monkey.png")
+        if self.rect:
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
+
+
+class TacTower(Tower):
+    """
+    Initializes a TacTower with preset stats.
+    """
+
+    def __init__(self):
+        """
+        Initializes a TacTower with preset stats.
+        """
+        super().__init__()
+        self.level = 1
+        self.range = 100
+        self.cost = 300
+        self.damage = 1
+        self.attack_speed = 2
+        self.cooldown = 0.8
+        self.radius = 15
+        self.load_image("monkey_images/tac_tower.png")
+        if self.rect:
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
