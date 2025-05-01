@@ -28,7 +28,9 @@ class Game:
 
         pygame.init()
         pygame.mixer.init()
-        pygame.mixer.music.load("background_music.mp3")
+        pygame.mixer.music.load(
+            "soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3"
+        )
         pygame.mixer.music.play(loops=-1)
 
         self.clock_ticks = 0  # Add this line after pygame.init()
