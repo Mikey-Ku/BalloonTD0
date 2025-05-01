@@ -236,7 +236,7 @@ class DartTower(Tower):
         self.range = 100
         self.cost = 100
         self.damage = 1
-        self.attack_speed = 1.0
+        self.attack_speed = 0.75
         self.cooldown = 1.0
         self.radius = 15
         # Load the image

@@ -302,7 +302,7 @@ class MoabBalloon(Balloon):
             speed=1.0,  # match other balloons so it actually moves
             size=20,  # visually large
             reward=400,  # reward if it reaches the end
-            damage=10,  # lives lost if it reaches the end
+            damage=100,  # lives lost if it reaches the end
             waypoints=waypoints,
         )
         self.type = "moab"
@@ -320,7 +320,7 @@ class MoabBalloon(Balloon):
         children = []
         used_pixels = set()
         num_kids = 40
-        spread_radius = 20
+        spread_radius = 10
 
         while len(children) < num_kids:
             # random point in circle
