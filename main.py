@@ -246,8 +246,10 @@ class Game:
                 and not self.balloons
                 and not self.balloons_queue
             ):
+                # Reward scales: $20 per round number
+                round_finished = self.current_round
                 self.current_round += 1
-                self.money += 100
+                self.money += 20 * round_finished
                 self.round_started = False
 
             # End game or advance round

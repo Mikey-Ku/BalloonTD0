@@ -179,9 +179,9 @@ class GameUI:
                     button_width,
                     button_height,
                 ),
-                "Super Tower $500",
+                "Super Tower $2000",
                 lambda: self.select_tower("super"),
-                500,
+                2000,
             ),
         ]
 
@@ -191,7 +191,7 @@ class GameUI:
 
     def select_tower(self, tower_type):
         """Start tower placement if player has enough money."""
-        costs = {"dart": 100, "sniper": 200, "tac": 300, "super": 500}
+        costs = {"dart": 100, "sniper": 200, "tac": 300, "super": 2000}
         cost = costs[tower_type]
 
         if self.game.money >= cost:
@@ -302,7 +302,7 @@ class GameUI:
                     "dart": 100,
                     "sniper": 200,
                     "tac": 300,
-                    "super": 500,
+                    "super": 2000,
                 }
 
                 tower = tower_classes[self.selected_tower_type]()
