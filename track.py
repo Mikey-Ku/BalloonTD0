@@ -47,21 +47,6 @@ class Track:
                 if self.is_valid_tower_position(x, y):
                     self.valid_tower_positions.add((x, y))
 
-    # def add_tower(self, tower):
-    #     """Add a tower to the map if position is valid"""
-    #     x, y = tower.position
-    #     if self.is_valid_tower_position(x, y):
-    #         self.towers.append(tower)
-    #         return True
-    #     return False
-
-    # def remove_tower(self, tower):
-    #     """Remove a tower from the map"""
-    #     if tower in self.towers:
-    #         self.towers.remove(tower)
-    #         return True
-    #     return False
-
     def draw(self, screen):
         """Draw the track and path on screen"""
         # Draw path between waypoints

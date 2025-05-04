@@ -2,9 +2,9 @@
 A file containing the parent class for all Balloons as well as all subclasses.
 """
 
-import pygame
 import random
 import math
+import pygame
 
 _IMAGE_CACHE = {}
 

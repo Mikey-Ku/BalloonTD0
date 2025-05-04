@@ -1,0 +1,196 @@
+/* docs/style.css */
+
+/* ── IMPORT & FONT ───────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+/* ── GLOBAL RESET ────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  text-align: center;
+}
+
+/* ── HEADER BAR ─────────────────────────────────────────────────────────────── */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(17, 17, 17, 0.95);
+  padding: 0.75rem 2rem;           /* smaller vertical padding to tighten the bar */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  color: #fff;
+  text-align: left;               /* keep the title flush left */
+}
+
+/* ── NAV LINKS ──────────────────────────────────────────────────────────────── */
+.site-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.site-nav a {
+  color: #1e90ff;
+  font-size: 1.125rem;            /* slightly smaller for balance */
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.site-nav a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ── CONTENT PADDING ───────────────────────────────────────────────────────── */
+.content,
+main {
+  /* push everything down so it's not hidden behind the fixed header */
+  padding-top: 3.5rem;            /* approx equal to header height */
+}
+
+/* ── HIDE AUTO-GENERATED ANCHORS ───────────────────────────────────────────── */
+.content h1 a,
+.content h2 a,
+.content h3 a,
+.content h4 a,
+.content h5 a,
+.content h6 a {
+  display: none !important;
+}
+
+/* ── SECTION HEADERS ───────────────────────────────────────────────────────── */
+.content h2 {
+    display: inline-block;
+    position: relative;
+    margin: 2rem auto 1rem;
+    padding-bottom: 0.5rem;
+    font-size: 1.75rem;
+  }
+  
+  .content h2::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+    background: #1e90ff;
+  }
+  
+  /* ── FORCE FEATURES HEADING TO BREAK ─────────────────────────────────── */
+  h2#features {
+    display: block;       /* full-width, so next element drops below */
+    margin-bottom: 1rem;  /* breathing room under “Features” */
+  }
+  
+/* ── FEATURES ── */
+#features {
+    text-align: center;      /* center the list container */
+  }
+  
+  #features ul {
+    padding-left: 0;         /* remove default indent */
+    margin: 0 auto 2rem;     /* center and add bottom spacing */
+    max-width: 800px;        /* keep your width cap */
+    
+    list-style-position: inside;  /* bullet becomes part of text flow */
+    text-align: center;           /* center bullet + text together */
+  }
+  
+  #features ul li {
+    margin: 0.5rem 0;        /* vertical spacing between items */
+  }
+  
+  
+/* tower/gallery captions */
+.tower-grid,
+.balloon-grid {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem auto 2rem;
+}
+
+.tower-grid .tower-item,
+.balloon-grid .balloon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tower-grid figure,
+.balloon-grid figure {
+  margin: 0;
+  padding: 0;
+  border: 2px solid #333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tower-grid img,
+.balloon-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tower-grid figcaption,
+.balloon-grid figcaption {
+  margin-top: 0.5rem;
+  padding: 0 0.25rem 0.75rem;
+  color: #fff;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ── UNIFORM BALLOON WIDTH ───────────────────────────────────────────────── */
+.balloon-grid .balloon-item {
+    width: 150px;
+    flex: 0 0 150px;
+  }
+  .balloon-grid img {
+    width: 100%;
+    height: auto;
+  }
+
+/* ── GAMEPLAY SCREENSHOTS ─────────────────────────────────────────────────── */
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 1rem 0 2rem;
+}
+.screenshot-grid img {
+  width: 100%;
+  height: auto;
+  border: 2px solid #333;
+  border-radius: 6px;
+}
+.screenshot-grid em,
+.screenshot-grid p {
+  margin-top: 0.5rem;
+  color: #ccc;
+  font-style: italic;
+}
+
+/* ── FOOTER ───────────────────────────────────────────────────────────────── */
+footer {
+  padding: 2rem 0;
+  background: #111;
+  font-size: 0.9rem;
+}
