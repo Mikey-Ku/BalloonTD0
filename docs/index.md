@@ -86,15 +86,15 @@ Watch the action in motion!
 
 <div class="screenshot-grid">
   <!-- Screenshot 1 -->
-  ![Wave 1 Setup](path/to/screenshot1.png)  
+  ![Wave 1 Setup](screenshots/game_stages/wave_1_setup.png)  
   *Early-game setup*
 
   <!-- Screenshot 2 -->
-  ![MOAB Incoming](path/to/screenshot2.png)  
+  ![MOAB Incoming](screenshots/game_stages/moab_setup2.png)  
   *Mid-game boss wave*
 
   <!-- Screenshot 3 -->
-  ![Late Game](path/to/screenshot3.png)  
+  ![Late Game](screenshots/game_stages/last_round.png)  
   *Late-game chaos*
 </div>
 
@@ -102,20 +102,21 @@ Watch the action in motion!
 
 ## Installation {#installation}
 
-```bash
-git clone https://github.com/<your-username>/balloon-td.git
-cd balloon-td
-pip install -r requirements.txt
-python main.py
+1. Clone the repo: `git clone https://github.com/olincollege/BalloonTD0.git`
+2. Enter the folder: `cd BalloonTD0`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Run the game: `python main.py`
+
+
 
 ## Attributions {#attributions}
 
 ### Game Concept
-We gratefully acknowledge **Ninja Kiwi** for the original *Bloons Tower Defense* concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
+We gratefully acknowledge **Ninja Kiwi** for the original **Bloons Tower Defense** concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
 
 [https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html](https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html)
 
 ### Author Credits
-- **Michael Ku Jr.** — [https://github.com/Mikey-Ku](https://github.com/Mikey-Ku) 
-- **Hong Yi Zhang** — [https://github.com/tastychez](https://github.com/tastychez)  
-- **Jackson Gamache** — [https://github.com/jackson-gamache](https://github.com/jackson-gamache)
+ **Michael Ku Jr.** — [https://github.com/Mikey-Ku](https://github.com/Mikey-Ku) <br>
+ **Hong Yi Zhang** — [https://github.com/tastychez](https://github.com/tastychez)  <br>
+ **Jackson Gamache** — [https://github.com/jackson-gamache](https://github.com/jackson-gamache)<br>

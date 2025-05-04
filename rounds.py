@@ -30,5 +30,5 @@ rounds_config = [
     {"balloons": [("green", 10), ("yellow", 10)], "spawn_delay": 200},
     {"balloons": [("yellow", 10), ("pink", 10)], "spawn_delay": 200},
     # --- Round 20: 3 MOABs (final boss) ---
-    {"balloons": [("moab", 3)], "spawn_delay": 100},
+    {"balloons": [("moab", 3)], "spawn_delay": 600},
 ]

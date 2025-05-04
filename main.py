@@ -46,7 +46,7 @@ class Game:
         self.balloons = []
         self.towers = []
         self.tower_sprites = pygame.sprite.Group()
-        self.money = 2000
+        self.money = 200
         self.lives = 100
         self.round_started = False
         self.balloons_to_spawn = 10

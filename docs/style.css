@@ -170,23 +170,21 @@ main {
 
 /* ── GAMEPLAY SCREENSHOTS ─────────────────────────────────────────────────── */
 .screenshot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin: 1rem 0 2rem;
-}
-.screenshot-grid img {
-  width: 100%;
-  height: auto;
-  border: 2px solid #333;
-  border-radius: 6px;
-}
-.screenshot-grid em,
-.screenshot-grid p {
-  margin-top: 0.5rem;
-  color: #ccc;
-  font-style: italic;
-}
+    display: grid;
+    grid-template-columns: repeat(3, 480px);  /* three 480px-wide columns */
+    justify-content: center;                  /* center the whole grid */
+    gap: 1.5rem;
+    margin: 1rem auto 2rem;                   /* auto-side margins center container */
+  }
+  
+  .screenshot-grid img {
+    width: 100%;   /* fill its 480px cell */
+    height: auto;
+    border: 2px solid #333;
+    border-radius: 6px;
+    max-width: none; /* allow it to grow to full cell width */
+  }
+  
 
 /* ── FOOTER ───────────────────────────────────────────────────────────────── */
 footer {
@@ -194,3 +192,24 @@ footer {
   background: #111;
   font-size: 0.9rem;
 }
+
+/* ── INSTALLATION STEPS ───────────────────────────────────────────────────── */
+#installation ol {
+    max-width: 600px;       /* cap width so text lines aren’t super wide */
+    margin: 0 auto 2rem;    /* center it with some bottom space */
+    padding-left: 0;        /* remove default indent */
+  }
+  
+  #installation ol li {
+    margin: 0.75rem 0;      /* space between steps */
+    font-size: 1.125rem;    /* match your body text size */
+  }
+  
+  #installation ol li code {
+    display: inline-block;  
+    padding: 0.2rem 0.5rem;  /* tiny pill around code */
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  
