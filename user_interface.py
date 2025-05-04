@@ -342,6 +342,7 @@ class GameUI:
                     sell_price = int(self.selected_tower.cost * 0.7)
                     self.game.money += sell_price
                     self.game.towers.remove(self.selected_tower)
+                    self.game.track.towers.remove(self.selected_tower)
                     self.game.tower_sprites.remove(self.selected_tower)
                     self.selected_tower = None
                     return True
