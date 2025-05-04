@@ -167,16 +167,46 @@ class Game:
 
     def draw_stats(self):
         """Draw money, lives, round counter, and play/speed button on screen."""
-        money_text = self.font.render(f"Money: ${self.money}", True, (0, 0, 0))
-        lives_text = self.font.render(f"Lives: {self.lives}", True, (0, 0, 0))
-        round_text = self.font.render(
-            f"Round {self.current_round}", True, (0, 0, 0)
-        )
+        outline_color = (0, 0, 0)
+        # ——— Money with black outline ———
+        money_str = f"Money: ${self.money}"
+        mx, my = 10, 10
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                surf = self.font.render(money_str, True, outline_color)
+                self.screen.blit(surf, (mx + dx, my + dy))
+        money_surf = self.font.render(money_str, True, (255, 255, 0))
+        self.screen.blit(money_surf, (mx, my))
 
-        self.screen.blit(money_text, (10, 10))
-        self.screen.blit(lives_text, (10, 50))
-        self.screen.blit(round_text, (10, 570))
+        # ——— Lives with black outline ———
+        lives_str = f"Lives: {self.lives}"
+        lx, ly = 10, 50
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                surf = self.font.render(lives_str, True, outline_color)
+                self.screen.blit(surf, (lx + dx, ly + dy))
+        lives_surf = self.font.render(lives_str, True, (255, 0, 0))
+        self.screen.blit(lives_surf, (lx, ly))
 
+        # ——— Round counter with black outline ———
+        round_str = f"Round {self.current_round}"
+        rx, ry = 10, 570
+        # draw outline
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                outline_surf = self.font.render(round_str, True, outline_color)
+                self.screen.blit(outline_surf, (rx + dx, ry + dy))
+        # draw white text
+        round_surf = self.font.render(round_str, True, (255, 255, 255))
+        self.screen.blit(round_surf, (rx, ry))
+
+        # ——— Play / Speed button ———
         button_text = (
             "Play"
             if not self.round_started
