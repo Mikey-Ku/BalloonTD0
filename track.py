@@ -35,6 +35,8 @@ class Track:
             distance = math.sqrt((x - tower.x) ** 2 + (y - tower.y) ** 2)
             if distance < 30:
                 return False
+        if x < 0 or x > self.width or y < 0 or y > self.height:
+            return False
         return True
 
     def update_valid_positions(self):
