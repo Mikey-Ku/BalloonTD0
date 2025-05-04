@@ -11,7 +11,7 @@ In this tower defense game, you must defend your territory against waves of colo
 - **Multiple Tower Types**  
   - **Dart Tower** (fast, low damage)  
   - **Sniper Tower** (high damage, long range)  
-  - **Tac Tower** (area-of-effect attacks)  
+  - **Tac Tower** (fast, short radius)  
   - **Super Tower** (rapid-fire, extreme range)  
   *(Defined in `towers.py`)*
 
