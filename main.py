@@ -22,7 +22,7 @@ class Game:
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
-        self.last_round = 50
+        self.last_round = 20
 
         self.round_spawn_list = rounds_config
 
@@ -63,6 +63,100 @@ class Game:
         self.passive_income_amount = 2
         self.speed_multiplier = 1  # Normal speed
         self.play_button_rect = pygame.Rect(700, 10, 90, 40)  # Top-right corner
+        self.state = "menu"
+        self.play_button = pygame.Rect(300, 200, 200, 50)
+        self.ctrl_button = pygame.Rect(300, 270, 200, 50)
+        self.back_button = pygame.Rect(300, 520, 200, 50)
+        # load a background for the menu
+        self.menu_background = pygame.image.load(
+            "background_images/Background_blurred.png"
+        ).convert()
+        # scale it to exactly your window size
+        self.menu_background = pygame.transform.scale(
+            self.menu_background,
+            (self.screen.get_width(), self.screen.get_height()),
+        )
+
+    def draw_menu(self):
+        # draw blurred background
+        self.screen.blit(self.menu_background, (0, 0))
+
+        # ——— outline + draw title ———
+        title_text = "Balloon TD"
+        cx = self.screen.get_width() // 2
+        cy = 100
+        # 1px black outline in each direction
+        for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+            outline = self.end_font.render(title_text, True, (0, 0, 0))
+            outline_rect = outline.get_rect(center=(cx + ox, cy + oy))
+            self.screen.blit(outline, outline_rect)
+        # then the white text on top
+        title_surf = self.end_font.render(title_text, True, (255, 255, 255))
+        title_rect = title_surf.get_rect(center=(cx, cy))
+        self.screen.blit(title_surf, title_rect)
+
+        # ——— Play button ———
+        # gray fill
+        pygame.draw.rect(self.screen, (100, 100, 100), self.play_button)
+        # black border (3px)
+        pygame.draw.rect(self.screen, (0, 0, 0), self.play_button, 3)
+        # label
+        play_surf = self.font.render("Play", True, (0, 0, 0))
+        play_rect = play_surf.get_rect(center=self.play_button.center)
+        self.screen.blit(play_surf, play_rect)
+
+        # ——— Instructions button ———
+        pygame.draw.rect(self.screen, (100, 100, 100), self.ctrl_button)
+        pygame.draw.rect(self.screen, (0, 0, 0), self.ctrl_button, 3)
+        instr_surf = self.font.render("Instructions", True, (0, 0, 0))
+        instr_rect = instr_surf.get_rect(center=self.ctrl_button.center)
+        self.screen.blit(instr_surf, instr_rect)
+
+    def draw_instructions(self):
+        # draw the same blurred background
+        self.screen.blit(self.menu_background, (0, 0))
+
+        lines = [
+            "INSTRUCTIONS",
+            "– Drag and drop a tower from the UI onto the map to place it",
+            "– Press SPACE or use the Play button to start each round",
+            "– Use the bottom-right buttons to upgrade/sell towers",
+            "– Survive as many rounds as you can!",
+        ]
+
+        for i, txt in enumerate(lines):
+            x, y = 50, 100 + i * 40
+            thickness = 1
+            for dx in range(-thickness, thickness + 1):
+                for dy in range(-thickness, thickness + 1):
+                    if dx == 0 and dy == 0:
+                        continue
+                    outline = self.font.render(txt, True, (0, 0, 0))
+                    self.screen.blit(outline, (x + dx, y + dy))
+            # white text on top
+            text_surf = self.font.render(txt, True, (255, 255, 255))
+            self.screen.blit(text_surf, (x, y))
+
+        # draw Back button with thicker border
+        pygame.draw.rect(self.screen, (100, 100, 100), self.back_button)
+        pygame.draw.rect(
+            self.screen, (0, 0, 0), self.back_button, 4
+        )  # 4px border
+
+        back_txt = "Back"
+        bx, by = self.back_button.center
+        # outline for Back label
+        for dx in range(-thickness, thickness + 1):
+            for dy in range(-thickness, thickness + 1):
+                if dx == 0 and dy == 0:
+                    continue
+                ol = self.font.render(back_txt, True, (0, 0, 0))
+                r = ol.get_rect(center=(bx + dx, by + dy))
+                self.screen.blit(ol, r)
+        # white Back text
+        back_surf = self.font.render(back_txt, True, (255, 255, 255))
+        back_rect = back_surf.get_rect(center=(bx, by))
+        self.screen.blit(back_surf, back_rect)
 
     def toggle_speed(self):
         """Toggle between normal and 2x speed."""
@@ -154,108 +248,141 @@ class Game:
             # Calculate delta time from clock
             dt = clock.tick(60 * self.speed_multiplier)
             self.clock_ticks += dt
-
-            # Replace current_time with self.clock_ticks
             current_time = self.clock_ticks
-
-            self.screen.blit(self.background, (0, 0))
 
             # Event handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE and not self.round_started:
-                        self.round_started = True
-                        self.last_spawn_time = current_time
-                        self.prepare_round()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.play_button_rect.collidepoint(event.pos):
-                        if not self.round_started:
+
+                # MENU STATE
+                if self.state == "menu":
+                    if (
+                        event.type == pygame.MOUSEBUTTONDOWN
+                        and event.button == 1
+                    ):
+                        if self.play_button.collidepoint(event.pos):
+                            self.state = "playing"
+                            self.last_spawn_time = current_time
+                            self.prepare_round()
+                        elif self.ctrl_button.collidepoint(event.pos):
+                            self.state = "instructions"
+
+                # INSTRUCTIONS STATE
+                elif self.state == "instructions":
+                    if (
+                        event.type == pygame.MOUSEBUTTONDOWN
+                        and event.button == 1
+                    ):
+                        if self.back_button.collidepoint(event.pos):
+                            self.state = "menu"
+
+                # PLAYING STATE
+                elif self.state == "playing":
+                    # Spacebar to start round
+                    if event.type == pygame.KEYDOWN:
+                        if (
+                            event.key == pygame.K_SPACE
+                            and not self.round_started
+                        ):
                             self.round_started = True
                             self.last_spawn_time = current_time
                             self.prepare_round()
-                        else:
-                            self.toggle_speed()
-                self.ui.handle_event(event)
 
-            # Spawn balloons
-            if self.round_started and self.balloons_queue:
-                if self.clock_ticks >= self.next_balloon_time:
-                    balloon_type = self.balloons_queue.pop(0)
-                    if balloon_type == "red":
-                        self.balloons.append(RedBalloon(self.waypoints))
-                    elif balloon_type == "blue":
-                        self.balloons.append(BlueBalloon(self.waypoints))
-                    elif balloon_type == "green":
-                        self.balloons.append(GreenBalloon(self.waypoints))
-                    elif balloon_type == "yellow":
-                        self.balloons.append(YellowBalloon(self.waypoints))
-                    elif balloon_type == "pink":
-                        self.balloons.append(PinkBalloon(self.waypoints))
-                    elif balloon_type == "moab":
-                        self.balloons.append(MoabBalloon(self.waypoints))
-                    # Adjust spawn delay based on speed multiplier
-                    adjusted_spawn_delay = (
-                        self.spawn_delay / self.speed_multiplier
-                    )
-                    self.next_balloon_time = (
-                        self.clock_ticks + adjusted_spawn_delay
-                    )
+                    # Click play button to start/slow rounds
+                    elif (
+                        event.type == pygame.MOUSEBUTTONDOWN
+                        and event.button == 1
+                    ):
+                        if self.play_button_rect.collidepoint(event.pos):
+                            if not self.round_started:
+                                self.round_started = True
+                                self.last_spawn_time = current_time
+                                self.prepare_round()
+                            else:
+                                self.toggle_speed()
 
-            # 1) Towers fire first, so pops replace visuals immediately
-            for tower in self.towers:
-                tower.update(self.speed_multiplier)
-                tower.update_angle(self.balloons)
-                popped = tower.attack(self.balloons, current_time)
-                if popped:
-                    for balloon, reward in popped:
-                        self.money += reward
-                if hasattr(tower, "rect") and tower.rect:
-                    tower.rect.centerx = int(tower.x)
-                    tower.rect.centery = int(tower.y)
-                tower.update()
+                    # Pass everything else to your UI (tower selections, upgrades, etc.)
+                    self.ui.handle_event(event)
 
-            # 2) Now move & draw all remaining balloons
-            for balloon in self.balloons[:]:
-                reached_end = balloon.move()
-                if reached_end:
-                    self.lives -= balloon.damage
-                    self.balloons.remove(balloon)
-                    continue
+            # DRAWING
+            if self.state == "menu":
+                self.draw_menu()
 
-                # draw living balloons
-                balloon.draw(self.screen)
-                if balloon.health <= 0:
-                    # (this handles any stragglers popped by non-tower effects)
-                    self.money += balloon.reward
-                    self.balloons.remove(balloon)
+            elif self.state == "instructions":
+                self.draw_instructions()
 
-            # Draw tower sprites on top of balloons
-            self.tower_sprites.draw(self.screen)
+            else:  # self.state == "playing"
+                # Background
+                self.screen.blit(self.background, (0, 0))
 
-            # Draw UI and stats
-            self.ui.draw(self.screen)
-            self.draw_stats()
+                # Spawn balloons
+                if self.round_started and self.balloons_queue:
+                    if self.clock_ticks >= self.next_balloon_time:
+                        bt = self.balloons_queue.pop(0)
+                        if bt == "red":
+                            self.balloons.append(RedBalloon(self.waypoints))
+                        elif bt == "blue":
+                            self.balloons.append(BlueBalloon(self.waypoints))
+                        elif bt == "green":
+                            self.balloons.append(GreenBalloon(self.waypoints))
+                        elif bt == "yellow":
+                            self.balloons.append(YellowBalloon(self.waypoints))
+                        elif bt == "pink":
+                            self.balloons.append(PinkBalloon(self.waypoints))
+                        elif bt == "moab":
+                            self.balloons.append(MoabBalloon(self.waypoints))
+                        adj_delay = self.spawn_delay / self.speed_multiplier
+                        self.next_balloon_time = self.clock_ticks + adj_delay
+
+                # Towers fire
+                for tower in self.towers:
+                    tower.update(self.speed_multiplier)
+                    tower.update_angle(self.balloons)
+                    popped = tower.attack(self.balloons, current_time)
+                    if popped:
+                        for bal, rew in popped:
+                            self.money += rew
+                    if hasattr(tower, "rect") and tower.rect:
+                        tower.rect.centerx = int(tower.x)
+                        tower.rect.centery = int(tower.y)
+                    tower.update()
+
+                # Move & draw balloons
+                for balloon in self.balloons[:]:
+                    if balloon.move():
+                        self.lives -= balloon.damage
+                        self.balloons.remove(balloon)
+                        continue
+                    balloon.draw(self.screen)
+                    if balloon.health <= 0:
+                        self.money += balloon.reward
+                        self.balloons.remove(balloon)
+
+                # Draw towers on top
+                self.tower_sprites.draw(self.screen)
+
+                # UI & stats
+                self.ui.draw(self.screen)
+                self.draw_stats()
+
+                # Round complete?
+                if (
+                    self.round_started
+                    and not self.balloons
+                    and not self.balloons_queue
+                ):
+                    finished = self.current_round
+                    self.current_round += 1
+                    self.money += 20 * finished
+                    self.round_started = False
+
+                # End game?
+                if self.current_round > self.last_round or self.lives <= 0:
+                    self.end_game()
+                    break
 
             pygame.display.flip()
-
-            # round-complete detection:
-            if (
-                self.round_started
-                and not self.balloons
-                and not self.balloons_queue
-            ):
-                # Reward scales: $20 per round number
-                round_finished = self.current_round
-                self.current_round += 1
-                self.money += 20 * round_finished
-                self.round_started = False
-
-            # End game or advance round
-            if self.current_round > self.last_round or self.lives <= 0:
-                self.end_game()
-                break
 
         pygame.quit()
 
