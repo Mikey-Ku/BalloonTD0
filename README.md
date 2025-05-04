@@ -1,33 +1,96 @@
-# Python Project Template Repository
+# Balloon Tower Defense
 
-This is a template repository for a Python project. Feel free to use and edit
-this repository (including this file) for your needs. Below, find some
-instructions and tips for using this template repository.
+A simple version of the popular **Bloons TD** game by Ninja Kiwi, built from scratch in Python using Pygame.
 
-## How to Use
+## Overview
 
-Click on the "Use this template" button in the top right corner to create a new
-repository based on this template. If this is for a class project, we ask that
-you keep it in the `olincollege` GitHub organization, and that you refrain from
-keeping the repository private. This will ensure that relevant people can access
-your repository for assessment, etc.
+In this tower defense game, you must defend your territory against waves of colorful balloons by placing and upgrading towers along a predefined path. Features include multiple tower types, tiered balloon enemies, customizable rounds, and a looping soundtrack for immersion.
 
-## Requirements
+## Features
 
-The `requirements.txt` file is blank and should be filled out with any project
-dependencies. There is a Python package called `pipreqs` that autogenerates the
-contents of the `requirements.txt` file based on the `import` statements in your
-`.py` files. To get this, run
+- **Multiple Tower Types**  
+  - **Dart Tower** (fast, low damage)  
+  - **Sniper Tower** (high damage, long range)  
+  - **Tac Tower** (area-of-effect attacks)  
+  - **Super Tower** (rapid-fire, extreme range)  
+  *(Defined in `towers.py`)*
 
+- **Varied Balloon Enemies**  
+  - Red, Blue, Green, Yellow, Pink balloons with increasing health and speed  
+  - **MOAB** boss that splits into smaller balloons upon destruction  
+  *(Implemented in `balloon.py`)*
+
+- **Wave-Based Gameplay**  
+  - 20 configurable rounds with spawn delays and mixed balloon types  
+  - Bonus income awarded at the end of each round  
+  *(Configured in `rounds.py`)*
+
+- **Dynamic Path & Map**  
+  - Waypoints loaded from `equidistant_points.csv` for easy map customization  
+  - Valid tower placements determined at runtime  
+  *(Logic in `track.py`)*
+
+- **Interactive UI**  
+  - Click buttons or press **SPACE** to start rounds  
+  - Toggle game speed between 1× and 2×  
+  - Place, upgrade, or sell towers via on-screen controls  
+  *(See `user_interface.py`)*
+
+- **Visuals & Audio**  
+  - Sprite assets in:
+    - `balloon_images/`
+    - `monkey_images/`
+    - `background_images/`
+  - Looping main theme in `soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3`
+
+- **Website & Documentation**  
+  - Static site source (for GitHub Pages) in `docs/`
+
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/olincollege/BalloonTD0.git
+   cd BalloonTD0
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Verify Assets**
+   Ensure the following asset directories and files are present:
+   - `equidistant_points.csv`
+   - `background_images/Background.webp`
+   - `balloon_images/*.png`
+   - `monkey_images/*.png`
+   - `soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3`
+
+## Usage
+
+Run the game:
+```bash
+python main.py
 ```
-pip install pipreqs
-```
 
-Then, in the root of your project repository, run:
+### Controls
 
-```
-pipreqs --mode compat
-```
+- **Start Round**: Click the **Play** button or press **SPACE**
+- **Toggle Speed**: Click **Play** during a round (switches between 1× and 2×)
+- **Place Tower**: Click a tower button, then click a valid map location
+- **Upgrade/Sell Tower**: Click an existing tower, then click **Upgrade** or **Sell**
+- **Restart/Quit**: After game over, press **R** to restart or **Q** to quit
 
-If you already have a `requirements.txt`, the above command will ask you to
-rerun the command with the `--force` flag to overwrite it.
+## Code Style
+
+- **Formatting**: [Black](https://github.com/psf/black) (80-character line width)
+- **Linting**: [Pylint](https://pylint.org/) with Pygame false-positive suppression
+
+## License & Acknowledgements
+
+- Built with [Pygame](https://www.pygame.org/)
+- Original concept by Ninja Kiwi (Bloons TD)
+- Main theme by Tim Haywood
+
+Enjoy defending against the balloon onslaught!
