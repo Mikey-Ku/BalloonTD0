@@ -1,5 +1,6 @@
 import math
 import pygame
+from balloon import MoabBalloon
 
 # Add image cache at module level
 TOWER_IMAGES = {}
@@ -160,18 +161,22 @@ class Tower(pygame.sprite.Sprite):
 
                 # Save reward BEFORE damaging
                 original_reward = target.base_reward
-
                 spawned = target.take_damage(self.damage)
 
+                # remove the old balloon…
                 balloons.remove(target)
 
                 if spawned:
+                    # …and spawn its children
                     balloons.extend(spawned)
+                    # but if this was a MOAB that just died, still give its reward
+                    if isinstance(target, MoabBalloon) and target.health <= 0:
+                        popped.append((target, original_reward))
                 else:
+                    # popped outright (no children) — give reward as before
                     popped.append((target, original_reward))
 
                 self.last_attack = current_time
-
         return popped
 
     def upgrade(self):
@@ -259,10 +264,10 @@ class SuperTower(Tower):
         super().__init__()
         self.level = 1
         self.range = 300
-        self.cost = 500
-        self.damage = 1.5
-        self.attack_speed = 2.5
-        self.cooldown = 0.7
+        self.cost = 2000
+        self.damage = 1
+        self.attack_speed = 40
+        self.cooldown = 0.2
         self.radius = 15
         self.load_image("monkey_images/super_monkey.png")
         if self.rect:
