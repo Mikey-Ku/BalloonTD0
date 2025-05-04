@@ -192,7 +192,7 @@ class Tower(pygame.sprite.Sprite):
         self.damage += 1
         self.range *= 1.1
         self.attack_speed *= 1.1
-        self.cost = self.cost * 1.5  # this is messed up it sells for too much
+        self.cost = self.cost * 1.5
         self.upgrade_cost = self.upgrade_cost * 1.5
 
     def sell(self):
@@ -216,10 +216,9 @@ class SniperTower(Tower):
         self.range = 100000
         self.cost = 200
         self.damage = 2
-        self.attack_speed = 1.0
+        self.attack_speed = 0.5
         self.cooldown = 1.0
         self.radius = 15
-        # Load the image
         self.load_image("monkey_images/sniper_monkey.png")
         # Initialize rect position after x,y are set
         if self.rect:
@@ -241,10 +240,9 @@ class DartTower(Tower):
         self.range = 100
         self.cost = 100
         self.damage = 1
-        self.attack_speed = 0.75
+        self.attack_speed = 1
         self.cooldown = 1.0
         self.radius = 15
-        # Load the image
         self.load_image("monkey_images/dart_monkey.png")
         # Initialize rect position after x,y are set
         if self.rect:
@@ -263,10 +261,10 @@ class SuperTower(Tower):
         """
         super().__init__()
         self.level = 1
-        self.range = 300
+        self.range = 150
         self.cost = 2000
         self.damage = 1
-        self.attack_speed = 40
+        self.attack_speed = 2.5
         self.cooldown = 0.2
         self.radius = 15
         self.load_image("monkey_images/super_monkey.png")
@@ -286,10 +284,10 @@ class TacTower(Tower):
         """
         super().__init__()
         self.level = 1
-        self.range = 100
+        self.range = 50
         self.cost = 300
         self.damage = 1
-        self.attack_speed = 2
+        self.attack_speed = 1.5
         self.cooldown = 0.8
         self.radius = 15
         self.load_image("monkey_images/tac_tower.png")

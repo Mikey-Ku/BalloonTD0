@@ -175,7 +175,7 @@ class Game:
 
         self.screen.blit(money_text, (10, 10))
         self.screen.blit(lives_text, (10, 50))
-        self.screen.blit(round_text, (600, 10))  # Shifted left to avoid overlap
+        self.screen.blit(round_text, (10, 570))
 
         button_text = (
             "Play"

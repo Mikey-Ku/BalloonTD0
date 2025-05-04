@@ -9,10 +9,10 @@ In this tower defense game, you must defend your territory against waves of colo
 ## Features
 
 - **Multiple Tower Types**  
-  - **Dart Monkey** (fast, low damage)  
-  - **Sniper Monkey** (high damage, long range)  
-  - **Tac Shooter** (area-of-effect attacks)  
-  - **Super Monkey** (rapid-fire, extreme range)  
+  - **Dart Tower** (fast, low damage)  
+  - **Sniper Tower** (high damage, long range)  
+  - **Tac Tower** (fast, short radius)  
+  - **Super Tower** (rapid-fire, extreme range)  
   *(Defined in `towers.py`)*
 
 - **Varied Balloon Enemies**  

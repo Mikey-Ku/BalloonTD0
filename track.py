@@ -5,7 +5,6 @@ interact with.
 
 import math
 import csv
-import pygame
 
 
 class Track:
@@ -49,29 +48,15 @@ class Track:
                 if self.is_valid_tower_position(x, y):
                     self.valid_tower_positions.add((x, y))
 
-    def draw(self, screen):
-        """Draw the track and path on screen"""
-        # Draw path between waypoints
-        if len(self.waypoints) > 1:
-            pygame.draw.lines(
-                screen, (100, 100, 100), False, self.waypoints, 20
-            )
-
-        # Draw waypoints
-        for point in self.waypoints:
-            pygame.draw.circle(
-                screen, (50, 50, 50), (int(point[0]), int(point[1])), 5
-            )
-
 
 def load_waypoints_from_csv(filename):
     """
     Loads waypoints from a CSV file and returns a list of (x, y) tuples.
     """
     waypoints = []
-    with open(filename, newline="") as csvfile:
+    with open(filename, newline="", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
-        next(reader)  # skip header
+        next(reader)
         for row in reader:
             if len(row) >= 2:
                 x = float(row[0])

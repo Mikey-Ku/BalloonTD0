@@ -139,20 +139,20 @@ class GameUI:
         self.selected_tower_type = None
         self.selected_tower = None
 
-        button_width = 140
+        button_width = 180
         button_height = 40
         start_y = 70
 
         self.purchase_buttons = [
             TowerPurchasingUI(
-                (660, start_y - 5, button_width, button_height),
+                (610, start_y - 5, button_width, button_height),
                 "Dart Monkey $100",
                 lambda: self.select_tower("dart"),
                 100,
             ),
             TowerPurchasingUI(
                 (
-                    660,
+                    610,
                     start_y + button_height + 5,
                     button_width,
                     button_height,
@@ -163,7 +163,7 @@ class GameUI:
             ),
             TowerPurchasingUI(
                 (
-                    660,
+                    610,
                     start_y + (2 * button_height) + 15,
                     button_width,
                     button_height,
@@ -174,7 +174,7 @@ class GameUI:
             ),
             TowerPurchasingUI(
                 (
-                    660,
+                    610,
                     start_y + (3 * button_height) + 25,
                     button_width,
                     button_height,
@@ -184,8 +184,7 @@ class GameUI:
                 2000,
             ),
         ]
-
-        self.tower_menu = TowerMenu((650, 60, button_width + 20, 200), self)
+        self.tower_menu = TowerMenu((600, 60, button_width + 20, 200), self)
 
         self.selected_tower_radius = 15
 
@@ -202,7 +201,7 @@ class GameUI:
         self.tower_menu.draw(screen)
         if self.selected_tower_type:
             mouse_pos = pygame.mouse.get_pos()
-            ranges = {"dart": 120, "sniper": 50, "tac": 100, "super": 360}
+            ranges = {"dart": 100, "sniper": 40, "tac": 50, "super": 200}
 
             is_valid = self.game.track.is_valid_tower_position(*mouse_pos)
 
@@ -342,6 +341,7 @@ class GameUI:
                     sell_price = int(self.selected_tower.cost * 0.7)
                     self.game.money += sell_price
                     self.game.towers.remove(self.selected_tower)
+                    self.game.track.towers.remove(self.selected_tower)
                     self.game.tower_sprites.remove(self.selected_tower)
                     self.selected_tower = None
                     return True
