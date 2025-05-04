@@ -107,3 +107,15 @@ git clone https://github.com/<your-username>/balloon-td.git
 cd balloon-td
 pip install -r requirements.txt
 python main.py
+
+## Attributions {#attributions}
+
+### Game Concept
+We gratefully acknowledge **Ninja Kiwi** for the original *Bloons Tower Defense* concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
+
+[https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html](https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html)
+
+### Author Credits
+- **Michael Ku Jr.** — [https://github.com/Mikey-Ku](https://github.com/Mikey-Ku) 
+- **Hong Yi Zhang** — [https://github.com/tastychez](https://github.com/tastychez)  
+- **Jackson Gamache** — [https://github.com/jackson-gamache](https://github.com/jackson-gamache)
