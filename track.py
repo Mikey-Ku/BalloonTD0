@@ -1,6 +1,8 @@
 """
-Defines the game map and track system that both balloons and towers
-interact with.
+Module for managing the track and waypoints in the Balloon Tower Defense game.
+
+This module defines the `Track` class and functions for loading waypoints
+from a CSV file.
 """
 
 import math
@@ -8,13 +10,15 @@ import csv
 
 
 class Track:
-    """
-    A class to represent the game map and balloon path
-    """
+    """Represents the track on which balloons move."""
 
     def __init__(self, width=800, height=600):
         """
-        Initialize the track with game dimensions and waypoints
+        Initializes the track with game dimensions and waypoints.
+
+        Args:
+            width (int): The width of the game map.
+            height (int): The height of the game map.
         """
         self.width = width
         self.height = height
@@ -24,7 +28,16 @@ class Track:
         self.tower_invalid_radius = 15
 
     def is_valid_tower_position(self, x, y):
-        """Check if a position is valid for tower placement"""
+        """
+        Checks if a position is valid for tower placement.
+
+        Args:
+            x (float): The x-coordinate of the position.
+            y (float): The y-coordinate of the position.
+
+        Returns:
+            bool: True if the position is valid for tower placement, False otherwise.
+        """
         for waypoint in self.waypoints:
             wx, wy = waypoint
             distance = math.sqrt((x - wx) ** 2 + (y - wy) ** 2)
@@ -39,7 +52,9 @@ class Track:
         return True
 
     def update_valid_positions(self):
-        """Update the set of valid tower positions"""
+        """
+        Updates the set of valid tower positions.
+        """
         self.valid_tower_positions = set()
 
         grid_size = 20
@@ -51,7 +66,13 @@ class Track:
 
 def load_waypoints_from_csv(filename):
     """
-    Loads waypoints from a CSV file and returns a list of (x, y) tuples.
+    Loads waypoints from a CSV file.
+
+    Args:
+        filename (str): The path to the CSV file containing waypoints.
+
+    Returns:
+        list: A list of waypoints, where each waypoint is a tuple (x, y).
     """
     waypoints = []
     with open(filename, newline="", encoding="utf-8") as csvfile:

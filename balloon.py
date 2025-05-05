@@ -1,5 +1,8 @@
 """
-A file containing the parent class for all Balloons as well as all subclasses.
+Module for defining balloon types in the Balloon Tower Defense game.
+
+This module defines classes for different types of balloons, each with
+unique properties such as health, speed, and reward.
 """
 
 import random
@@ -10,6 +13,16 @@ _IMAGE_CACHE = {}
 
 
 def load_cached(path, size):
+    """
+    Loads and caches an image, scaling it to the specified size.
+
+    Args:
+        path (str): Path to the image file.
+        size (tuple): Desired size of the image.
+
+    Returns:
+        pygame.Surface: The cached and scaled image surface.
+    """
     key = (path, size)
     if key not in _IMAGE_CACHE:
         surf = pygame.image.load(path).convert_alpha()
@@ -36,7 +49,7 @@ class Balloon(pygame.sprite.Sprite):
         type (str): String representing the balloon type.
     """
 
-    def __init__( 
+    def __init__(
         self,
         x,
         y,
@@ -61,6 +74,7 @@ class Balloon(pygame.sprite.Sprite):
             reward (int): Currency given to the player upon popping.
             damage (int): Damage dealt to the player if balloon reaches the end.
             waypoints (list): List of coordinates the balloon moves through.
+            skip_frames (int): Number of frames to skip before moving.
         """
         super().__init__()
         self.x = x
@@ -70,44 +84,47 @@ class Balloon(pygame.sprite.Sprite):
         self.speed = speed
         self.size = size
         self.reward = reward
-        # remember the “true” reward for this balloon (and its descendants)
         self.base_reward = reward
         self.damage = damage
         self.waypoints = waypoints
         self.current_waypoint = 0
         self.type = "base"
+        self.skip_frames = 0
 
-        # Sprite properties
         self.image = pygame.Surface(
             (self.size * 2, self.size * 2), pygame.SRCALPHA
         )
         pygame.draw.circle(
             self.image, self.color, (self.size, self.size), self.size
-        )  # draw a circle on the image
+        )
         self.offset = (0, 0)
         self.rect = self.image.get_rect(
             center=(int(self.x + self.offset[0]), int(self.y + self.offset[1]))
         )
 
-        self.image_path = None  # Path to the balloon image (if any)
+        self.image_path = None
 
     def load_image(self, image_path):
-        """Load and scale the balloon image"""
+        """
+        Loads and scales the balloon image.
+
+        Args:
+            image_path (str): Path to the image file.
+        """
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(
             self.image, (self.size * 5, self.size * 5)
         )
         self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
-        self.image_path = image_path  # Store the image path
+        self.image_path = image_path
 
     def draw(self, screen):
         """
         Draws the balloon on the screen.
 
         Args:
-            screen (pygame.Surface?): The surface to draw the balloon on.
+            screen (pygame.Surface): The surface to draw the balloon on.
         """
-        # always draw at path position + permanent offset
         ox, oy = self.offset
         self.rect.center = (int(self.x + ox), int(self.y + oy))
         screen.blit(self.image, self.rect)
@@ -119,7 +136,6 @@ class Balloon(pygame.sprite.Sprite):
         Returns:
             bool: True if the balloon has reached the end of the path.
         """
-        # if this balloon was just spawned from a MOAB, hold its position
         skip = getattr(self, "skip_frames", 0)
         if skip > 0:
             self.skip_frames = skip - 1
@@ -131,12 +147,18 @@ class Balloon(pygame.sprite.Sprite):
             return True
 
         self.x, self.y = self.waypoints[self.current_waypoint]
-        self.rect.center = (int(self.x), int(self.y))  # Update rect position
+        self.rect.center = (int(self.x), int(self.y))
         return False
 
     def take_damage(self, amount):
         """
         Downgrade by `amount` tiers, popping if you go below tier 0.
+
+        Args:
+            amount (int): Amount of damage to take.
+
+        Returns:
+            list: List of child balloons spawned after taking damage.
         """
         tier_names = [name for name, _ in balloon_tiers]
         idx = tier_names.index(self.type)
@@ -146,14 +168,12 @@ class Balloon(pygame.sprite.Sprite):
             _, ctor = balloon_tiers[new_idx]
             child = ctor(self.waypoints)
             child.base_reward = self.base_reward
-            # preserve position, progress, offset, freeze
             child.x, child.y = self.x, self.y
             child.current_waypoint = self.current_waypoint
             child.offset = getattr(self, "offset", (0, 0))
             child.skip_frames = getattr(self, "skip_frames", 0)
             return [child]
 
-        # new_idx < 0 → popped with no spawn
         return []
 
 
@@ -168,6 +188,9 @@ class RedBalloon(Balloon):
     def __init__(self, waypoints):
         """
         Initializes a RedBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
         """
         super().__init__(
             x=waypoints[0][0],
@@ -194,7 +217,10 @@ class BlueBalloon(Balloon):
 
     def __init__(self, waypoints):
         """
-        Initializes a BlueBalloon preset stats.
+        Initializes a BlueBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
         """
         super().__init__(
             x=waypoints[0][0],
@@ -222,6 +248,12 @@ class GreenBalloon(Balloon):
     BASE_IMAGE = "balloon_images/green_balloon.png"
 
     def __init__(self, waypoints):
+        """
+        Initializes a GreenBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
+        """
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
@@ -248,6 +280,12 @@ class YellowBalloon(Balloon):
     """
 
     def __init__(self, waypoints):
+        """
+        Initializes a YellowBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
+        """
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
@@ -272,6 +310,12 @@ class PinkBalloon(Balloon):
     """
 
     def __init__(self, waypoints):
+        """
+        Initializes a PinkBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
+        """
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
@@ -291,58 +335,66 @@ class MoabBalloon(Balloon):
     """
     A multi-hit “MOAB” that takes 50 damage to die,
     then bursts into 40 GreenBalloons scattered around its death spot.
+
+    Attributes:
+        type (str): The type identifier for the balloon ("moab").
     """
 
     def __init__(self, waypoints):
+        """
+        Initializes a MoabBalloon with preset stats.
+
+        Args:
+            waypoints (list): A list of waypoints the balloon will follow.
+        """
         super().__init__(
             x=waypoints[0][0],
             y=waypoints[0][1],
-            health=50,  # must absorb 50hp before popping
-            color=(128, 128, 128),  # grey
-            speed=1.0,  # match other balloons so it actually moves
-            size=20,  # visually large
-            reward=400,  # reward if it reaches the end
-            damage=100,  # lives lost if it reaches the end
+            health=50,
+            color=(128, 128, 128),
+            speed=1.0,
+            size=20,
+            reward=400,
+            damage=100,
             waypoints=waypoints,
         )
         self.type = "moab"
-        # if you have a custom MOAB sprite, uncomment:
         self.load_image("balloon_images/moab.png")
 
     def take_damage(self, amount):
-        # subtract damage
+        """
+        Handles damage taken by the MoabBalloon.
+
+        Args:
+            amount (int): Amount of damage to take.
+
+        Returns:
+            list: List of child balloons spawned after taking damage.
+        """
         self.health -= amount
         if self.health > 0:
             return [self]
 
-        # spawn 40 greens in a tight cluster (radius=20px),
-        # but make sure no two share the same int(x,y) offset
         children = []
         used_pixels = set()
         num_kids = 40
         spread_radius = 20
 
         while len(children) < num_kids:
-            # random point in circle
             theta = random.uniform(0, 2 * math.pi)
             r = random.uniform(0, spread_radius)
             dx = math.cos(theta) * r
             dy = math.sin(theta) * r
 
-            # round to int pixels to test overlap
             pix = (int(dx), int(dy))
             if pix in used_pixels:
                 continue
             used_pixels.add(pix)
 
             g = GreenBalloon(self.waypoints)
-            # start exactly at the MOAB’s path position
             g.x, g.y = self.x, self.y
             g.current_waypoint = self.current_waypoint
-
-            # permanent draw‐time offset
             g.offset = (dx, dy)
-            # hold for a few frames so you actually see the scatter
             g.skip_frames = 12
 
             children.append(g)
