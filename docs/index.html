@@ -52,7 +52,7 @@ ul.task-list li input[type="checkbox"] {
 Balloons Tower Defense
 </h1>
 <nav class="site-nav">
-<a href="#about">About</a> <a href="#features">Features</a> <a href="#gameplay">Gameplay</a> <a href="#installation">Installation</a> <a href="#Attributions">Attributions</a>
+<a href="#about">About</a> <a href="#features">Features</a> <a href="#gameplay">Gameplay</a> <a href="#installation">Installation</a> <a href="#attributions">Attributions</a>
 </nav>
 </header>
 <hr>
@@ -64,7 +64,7 @@ Balloons Tower Defense
 <section id="features" class="level2">
 <h2 class="anchored" data-anchor-id="features">Features</h2>
 <ul>
-<li><strong>Four tower types</strong>, each with unique behavior :</li>
+<li><strong>Four tower types</strong>, each with unique behavior:</li>
 </ul>
 <div class="tower-grid">
 <figure class="tower-item figure">
@@ -93,7 +93,7 @@ Super Monkey
 </figure>
 </div>
 <ul>
-<li><strong>Six balloon enemy types</strong> with increasing toughness :</li>
+<li><strong>Six balloon enemy types</strong> with increasing toughness:</li>
 </ul>
 <div class="balloon-grid">
 <figure class="balloon-item figure">
@@ -156,23 +156,29 @@ MOAB Boss
 </section>
 <section id="installation" class="level2">
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<ol type="1">
-<li>Clone the repo: <code>git clone https://github.com/olincollege/BalloonTD0.git</code></li>
-<li>Enter the folder: <code>cd BalloonTD0</code></li>
-<li>Install dependencies: <code>pip install -r requirements.txt</code></li>
-<li>Run the game: <code>python main.py</code></li>
-</ol>
+<p>Clone the repo: <br><code>git clone https://github.com/olincollege/BalloonTD0.git</code><br> Enter the folder: <br> <code>cd BalloonTD0</code> <br> Install dependencies: <br> <code>pip install -r requirements.txt</code><br> Run the game: <br> <code>python main.py</code> <br></p>
 </section>
 <section id="attributions" class="level2">
 <h2 class="anchored" data-anchor-id="attributions">Attributions</h2>
-<section id="game-concept" class="level3">
-<h3 class="anchored" data-anchor-id="game-concept">Game Concept</h3>
 <p>We gratefully acknowledge <strong>Ninja Kiwi</strong> for the original <strong>Bloons Tower Defense</strong> concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:</p>
 <p><a href="https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html">https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html</a></p>
-</section>
 <section id="author-credits" class="level3">
 <h3 class="anchored" data-anchor-id="author-credits">Author Credits</h3>
-<p><strong>Michael Ku Jr.</strong> — <a href="https://github.com/Mikey-Ku">https://github.com/Mikey-Ku</a> <br> <strong>Hong Yi Zhang</strong> — <a href="https://github.com/tastychez">https://github.com/tastychez</a> <br> <strong>Jackson Gamache</strong> — <a href="https://github.com/jackson-gamache">https://github.com/jackson-gamache</a><br></p>
+<p><strong>Hong Yi Zhang</strong> — <a href="https://github.com/tastychez">https://github.com/tastychez</a> <br> <strong>Michael Ku Jr.</strong> — <a href="https://github.com/Mikey-Ku">https://github.com/Mikey-Ku</a> <br> <strong>Jackson Gamache</strong> — <a href="https://github.com/jackson-gamache">https://github.com/jackson-gamache</a><br></p>
+<!-- Smooth scrolling & header offset fix -->
+<script>
+  document.querySelectorAll('.site-nav a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const headerH = document.querySelector('.site-header').offsetHeight;
+      const id = this.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (!target) return;
+      const y = target.getBoundingClientRect().top + window.pageYOffset - headerH;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  });
+</script>
 </section>
 </section>
 

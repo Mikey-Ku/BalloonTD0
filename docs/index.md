@@ -9,7 +9,7 @@
     <a href="#features">Features</a>
     <a href="#gameplay">Gameplay</a>
     <a href="#installation">Installation</a>
-    <a href="#Attributions">Attributions</a>
+    <a href="#attributions">Attributions</a>
   </nav>
 </header>
 
@@ -23,7 +23,7 @@ A simple tower-defense game built in **Python** using **Pygame**, inspired by Ni
 
 ## Features {#features}
 
-- **Four tower types**, each with unique behavior :
+- **Four tower types**, each with unique behavior:
 
 <div class="tower-grid">
   <figure class="tower-item">
@@ -44,7 +44,7 @@ A simple tower-defense game built in **Python** using **Pygame**, inspired by Ni
   </figure>
 </div>
 
-- **Six balloon enemy types** with increasing toughness :
+- **Six balloon enemy types** with increasing toughness:
 
 <div class="balloon-grid">
   <figure class="balloon-item">
@@ -102,21 +102,35 @@ Watch the action in motion!
 
 ## Installation {#installation}
 
-1. Clone the repo: `git clone https://github.com/olincollege/BalloonTD0.git`
-2. Enter the folder: `cd BalloonTD0`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run the game: `python main.py`
+Clone the repo: <br>`git clone https://github.com/olincollege/BalloonTD0.git`<br>
+Enter the folder: <br> `cd BalloonTD0` <br>
+Install dependencies: <br> `pip install -r requirements.txt`<br> 
+Run the game: <br> `python main.py` <br>
 
 
 
 ## Attributions {#attributions}
 
-### Game Concept
 We gratefully acknowledge **Ninja Kiwi** for the original **Bloons Tower Defense** concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
 
 [https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html](https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html)
 
 ### Author Credits
- **Michael Ku Jr.** — [https://github.com/Mikey-Ku](https://github.com/Mikey-Ku) <br>
  **Hong Yi Zhang** — [https://github.com/tastychez](https://github.com/tastychez)  <br>
+ **Michael Ku Jr.** — [https://github.com/Mikey-Ku](https://github.com/Mikey-Ku) <br>
  **Jackson Gamache** — [https://github.com/jackson-gamache](https://github.com/jackson-gamache)<br>
+
+<!-- Smooth scrolling & header offset fix -->
+<script>
+  document.querySelectorAll('.site-nav a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const headerH = document.querySelector('.site-header').offsetHeight;
+      const id = this.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (!target) return;
+      const y = target.getBoundingClientRect().top + window.pageYOffset - headerH;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    });
+  });
+</script>

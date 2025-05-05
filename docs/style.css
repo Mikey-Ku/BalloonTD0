@@ -62,7 +62,14 @@ main {
   /* push everything down so it's not hidden behind the fixed header */
   padding-top: 3.5rem;            /* approx equal to header height */
 }
-
+/* ── FIX ANCHOR SCROLLING UNDER FIXED HEADER ───────────────────────────── */
+.content {
+    /* push content down */
+    padding-top: 3.5rem;
+    /* leave 3.5rem of “scroll padding” so anchors never go beneath the header */
+    scroll-padding-top: 3.5rem;
+  }
+  
 /* ── HIDE AUTO-GENERATED ANCHORS ───────────────────────────────────────────── */
 .content h1 a,
 .content h2 a,
@@ -178,7 +185,7 @@ main {
   }
   
   .screenshot-grid img {
-    width: 100%;   /* fill its 480px cell */
+    width: 97%;   /* fill its 480px cell */
     height: auto;
     border: 2px solid #333;
     border-radius: 6px;
@@ -212,4 +219,39 @@ footer {
     border-radius: 4px;
     font-family: monospace;
   }
+  
+  /* ── TYPOGRAPHY SCALE ───────────────────────────────────────────────────────── */
+
+/* bump up the root font-size (all rems will scale from here) */
+html {
+    font-size: 45px;    /* default was likely 16px—18px = ~12.5% larger */
+  }
+  
+  /* headings */
+  .site-header h1 {
+    font-size: 2.25rem;    /* was 2.25rem; now ~54px */
+  }
+  
+  .content h2 {
+    font-size: 2.5rem;  /* was 1.75rem; now ~45px */
+  }
+  
+  /* nav links */
+  .site-nav a {
+    font-size: 1.5rem; /* was 1.125rem; now ~22px */
+  }
+  
+  /* body copy, list items, captions */
+  body,
+  #about,
+  #installation,
+  #features ul li,
+  #installation ol li,
+  .tower-grid figcaption,
+  .balloon-grid figcaption,
+  .screenshot-grid em,
+  .screenshot-grid p {
+    font-size: 1.225rem; /* ~20px base copy */
+  }
+  
   
