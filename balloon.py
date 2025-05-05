@@ -36,7 +36,7 @@ class Balloon(pygame.sprite.Sprite):
         type (str): String representing the balloon type.
     """
 
-    def __init__(  # pylint is tripping , too many args??
+    def __init__( 
         self,
         x,
         y,

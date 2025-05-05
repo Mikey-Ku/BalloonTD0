@@ -90,7 +90,7 @@ python main.py
 ## License & Acknowledgements
 
 - Built with [Pygame](https://www.pygame.org/)
-- Original concept by Ninja Kiwi (Bloons TD)
+- Original concept and map by Ninja Kiwi (Bloons TD)
 - Main theme by Tim Haywood
 
 Enjoy defending against the balloon onslaught!
