@@ -22,6 +22,39 @@ from user_interface import GameUI
 class Game:
     """
     Main game class that handles initialization, game state, and the game loop.
+
+    Attributes:
+        round_started (bool): Whether the current round has begun.
+        balloons_to_spawn (int): Number of balloons queued for spawning.
+        current_round (int): Index of the current round.
+        last_round (int): Final round number.
+        round_spawn_list (list): Configuration list for each round's spawns.
+        clock_ticks (int): Total elapsed game time in milliseconds.
+        screen (pygame.Surface): Main display surface.
+        background (pygame.Surface): Scaled game background image.
+        track (Track): Path track instance.
+        waypoints (list): List of waypoint coordinates.
+        balloons (list): Active balloon instances.
+        towers (list): Active tower instances.
+        balloons_queue (list): Balloon spawn queue for current round.
+        tower_sprites (pygame.sprite.Group): Sprite group for towers.
+        money (int): Player's current money.
+        lives (int): Player's remaining lives.
+        spawn_delay (int): Milliseconds between balloon spawns.
+        last_spawn_time (int): Timestamp of the last spawn event.
+        next_balloon_time (int): Scheduled time for next balloon spawn.
+        current_wave (int): Current wave within a round.
+        ui (GameUI): User interface controller instance.
+        font (pygame.font.Font): Font for in-game text.
+        end_font (pygame.font.Font): Font for end-game messages.
+        passive_income_amount (int): Money gained per round completion.
+        speed_multiplier (int): Game speed factor (1 or 2).
+        play_button_rect (Rect): Rectangle for play/speed toggle.
+        state (str): Current screen state ('menu', 'instructions', 'playing').
+        play_button (Rect): Rectangle for menu play button.
+        ctrl_button (Rect): Rectangle for menu instructions button.
+        back_button (Rect): Rectangle for instructions back button.
+        menu_background (pygame.Surface): Blurred background for menus.
     """
 
     def __init__(self):
@@ -42,7 +75,7 @@ class Game:
         )
         pygame.mixer.music.play(loops=-1)
 
-        self.clock_ticks = 0  # Add this line after pygame.init()
+        self.clock_ticks = 0
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Balloon TD")
         self.background = pygame.image.load(
@@ -81,7 +114,6 @@ class Game:
         self.menu_background = pygame.image.load(
             "background_images/Background_blurred.png"
         ).convert()
-        # scale it to exactly your window size
         self.menu_background = pygame.transform.scale(
             self.menu_background,
             (self.screen.get_width(), self.screen.get_height()),
@@ -103,7 +135,7 @@ class Game:
             outline = self.end_font.render(title_text, True, (0, 0, 0))
             outline_rect = outline.get_rect(center=(cx + ox, cy + oy))
             self.screen.blit(outline, outline_rect)
-        # then the white text on top
+        # white text on top
         title_surf = self.end_font.render(title_text, True, (255, 255, 255))
         title_rect = title_surf.get_rect(center=(cx, cy))
         self.screen.blit(title_surf, title_rect)
@@ -118,7 +150,7 @@ class Game:
         play_rect = play_surf.get_rect(center=self.play_button.center)
         self.screen.blit(play_surf, play_rect)
 
-        # ——— Instructions button ———
+        # Instructions button
         pygame.draw.rect(self.screen, (100, 100, 100), self.ctrl_button)
         pygame.draw.rect(self.screen, (0, 0, 0), self.ctrl_button, 3)
         instr_surf = self.font.render("Instructions", True, (0, 0, 0))
@@ -129,7 +161,6 @@ class Game:
         """
         Draws the instructions screen with gameplay instructions and a back button.
         """
-        # draw the same blurred background
         self.screen.blit(self.menu_background, (0, 0))
 
         lines = [
@@ -192,7 +223,7 @@ class Game:
         Draws the player's stats (money, lives, round counter) and the play/speed button.
         """
         outline_color = (0, 0, 0)
-        # ——— Money with black outline ———
+        # Money with black outline
         money_str = f"Money: ${self.money}"
         mx, my = 10, 10
         for dx in (-1, 0, 1):
@@ -204,7 +235,7 @@ class Game:
         money_surf = self.font.render(money_str, True, (255, 255, 0))
         self.screen.blit(money_surf, (mx, my))
 
-        # ——— Lives with black outline ———
+        # Lives with black outline
         lives_str = f"Lives: {self.lives}"
         lx, ly = 10, 50
         for dx in (-1, 0, 1):
@@ -216,7 +247,7 @@ class Game:
         lives_surf = self.font.render(lives_str, True, (255, 0, 0))
         self.screen.blit(lives_surf, (lx, ly))
 
-        # ——— Round counter with black outline ———
+        # Round counter with black outline
         round_str = f"Round {self.current_round}"
         rx, ry = 10, 570
         # draw outline
@@ -230,7 +261,7 @@ class Game:
         round_surf = self.font.render(round_str, True, (255, 255, 255))
         self.screen.blit(round_surf, (rx, ry))
 
-        # ——— Play / Speed button ———
+        # Play / Speed button
         button_text = (
             "Play"
             if not self.round_started

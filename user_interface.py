@@ -9,17 +9,16 @@ from towers import DartTower, SniperTower, SuperTower, TacTower
 
 
 class TowerPurchasingUI:
-    """Class that handles the user interface for purchasing towers."""
+    """Handles the UI element for purchasing a single tower type."""
 
     def __init__(self, rect, text, callback, tower_cost=0):
-        """
-        Initialize the UI element with a rectangle, text, and callback function.
+        """Initialize a TowerPurchasingUI button.
 
         Args:
-            rect (tuple): Tuple (x, y, width, height) for the button.
-            text (str): Button text.
-            callback (function): Function to call when clicked.
-            tower_cost (int): Cost of the tower for display.
+            rect (tuple[int, int, int, int]): Button position and size as (x, y, width, height).
+            text (str): Label to display on the button.
+            callback (Callable[[], None]): Function to invoke when the button is clicked.
+            tower_cost (int, optional): Cost of the tower; used for enabling/disabling. Defaults to 0.
         """
         self.rect = pygame.Rect(rect)
         self.text = text

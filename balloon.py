@@ -33,20 +33,26 @@ def load_cached(path, size):
 
 class Balloon(pygame.sprite.Sprite):
     """
-    Base class for enemy balloons.
+    Base class for all enemy balloons.
 
     Attributes:
-        x (float): X-coordinate of the balloon's position.
-        y (float): Y-coordinate of the balloon's position.
-        health (int): Current health of the balloon.
-        color (tuple): RGB color representation.
-        speed (float): Movement speed of the balloon.
+        x (float): Current x-coordinate of the balloon.
+        y (float): Current y-coordinate of the balloon.
+        health (int): Remaining health of the balloon.
+        color (tuple[int, int, int]): RGB color of the balloon.
+        speed (float): Movement speed (waypoints per frame).
         size (int): Visual radius of the balloon.
-        reward (int): Money awarded to the player when popped.
-        damage (int): Player health reduction if balloon reaches the end.
-        waypoints (list): List of (x, y) tuples representing the path.
-        current_waypoint (int): Index of the next waypoint to move toward.
-        type (str): String representing the balloon type.
+        reward (int): Money awarded when the balloon is popped.
+        base_reward (int): Original reward value for child inheritance.
+        damage (int): Player health reduction if the balloon reaches the end.
+        waypoints (list[tuple[float, float]]): Path coordinates.
+        current_waypoint (int): Index of the next waypoint to approach.
+        type (str): Identifier string for balloon tier.
+        skip_frames (int): Frames to skip before the next move.
+        image (pygame.Surface): Visual representation of the balloon.
+        rect (pygame.Rect): Rect for drawing the balloon.
+        offset (tuple[float, float]): Rendering offset from path position.
+        image_path (str | None): File path of the loaded image, if any.
     """
 
     def __init__(
@@ -65,16 +71,15 @@ class Balloon(pygame.sprite.Sprite):
         Initializes a Balloon instance.
 
         Args:
-            x (float): Initial x position.
-            y (float): Initial y position.
-            health (int): Starting health of the balloon.
-            color (tuple): RGB color tuple.
-            speed (float): Balloon speed in pixels per frame.
-            size (int): Radius of the balloon's visual representation.
-            reward (int): Currency given to the player upon popping.
-            damage (int): Damage dealt to the player if balloon reaches the end.
-            waypoints (list): List of coordinates the balloon moves through.
-            skip_frames (int): Number of frames to skip before moving.
+            x (float): Initial x-coordinate.
+            y (float): Initial y-coordinate.
+            health (int): Starting health.
+            color (tuple[int, int, int]): RGB color.
+            speed (float): Movement speed (waypoints per frame).
+            size (int): Radius for drawing.
+            reward (int): Money given when popped.
+            damage (int): Damage to player if not popped.
+            waypoints (list[tuple[float, float]]): Path to follow.
         """
         super().__init__()
         self.x = x
