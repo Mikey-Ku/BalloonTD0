@@ -17,7 +17,20 @@
 
 ## About {#about}
 
-A simple tower-defense game built in **Python** using **Pygame**, inspired by Ninja Kiwi’s Bloons TD. Strategically place and upgrade towers to defend against waves of colorful balloons racing along custom paths!
+A simple tower-defense game built in **Python** using **Pygame**, inspired by Ninja Kiwi’s Bloons TD. Strategically place and upgrade towers to defend against waves of colorful balloons racing along a path!
+
+<!-- Embed gameplay video -->
+<div class="video-wrapper">
+  <iframe
+    width="840"
+    height="473"
+    src="https://www.youtube.com/embed/9UlYsHEsCjE?si=nQjvYz9Wu7hpg5-s"
+    title="About Video"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div>
 
 <hr />
 
@@ -81,8 +94,7 @@ A simple tower-defense game built in **Python** using **Pygame**, inspired by Ni
 
 ## Gameplay {#gameplay}
 
-Watch the action in motion!  
-[▶️ Watch gameplay video](https://youtu.be/<your-video-id>)
+Dive into **20 rounds** of escalating challenge—each wave brings tougher balloons and faster spawn rates. Your goal is to survive all 20 rounds without letting your lives drop to zero. Can you beat every round before the balloons break through?
 
 <div class="screenshot-grid">
   <!-- Screenshot 1 -->
@@ -100,7 +112,11 @@ Watch the action in motion!
 
 <hr />
 
+
 ## Installation {#installation}
+
+**Link to GitHub**:  
+[olincollege/BalloonTD0](https://github.com/olincollege/BalloonTD0)
 
 Clone the repo: <br>`git clone https://github.com/olincollege/BalloonTD0.git`<br>
 Enter the folder: <br> `cd BalloonTD0` <br>
@@ -111,7 +127,7 @@ Run the game: <br> `python main.py` <br>
 
 ## Attributions {#attributions}
 
-We gratefully acknowledge **Ninja Kiwi** for the original **Bloons Tower Defense** concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
+We gratefully acknowledge **Ninja Kiwi** for the map and original **Bloons Tower Defense** concept, which served as our inspiration whenever we debated how to implement core mechanics. For more info:  
 
 [https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html](https://ninjakiwi.com/Games/Mobile/Bloons-Tower-Defense-5.html)
 

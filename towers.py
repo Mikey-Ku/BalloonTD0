@@ -1,8 +1,15 @@
+"""
+Module for defining tower behavior in the Balloon Tower Defense game.
+
+This module provides the base `Tower` class and its subclasses (`SniperTower`,
+`DartTower`, `SuperTower`, `TacTower`). Towers can load images, target and
+attack balloons, and support upgrading and selling.
+"""
+
 import math
 import pygame
 from balloon import MoabBalloon
 
-# Add image cache at module level
 TOWER_IMAGES = {}
 
 
@@ -12,22 +19,25 @@ class Tower(pygame.sprite.Sprite):
     attack enemy balloons within their range.
 
     Attributes:
-    x (float): X-coordinate of the tower on the map.
-    y (float): Y-coordinate of the tower on the map.
-    radius (float): Radius of how large the tower is.
-    level (int): Current upgrade level of the tower.
-    range (float): Radius within which the tower can attack balloons.
-    cost (int): Purchase or upgrade cost of the tower.
-    damage (int): Amount of damage dealt per attack.
-    attack_speed (float): Number of attacks per second.
-    cooldown (float): Time until the tower can attack again.
-    last_attack (float): Time of the last attack.
-    upgrade_cost (int): Cost to upgrade the tower.
-    image (Surface): The tower's sprite image
-    rect (Rect): The tower's position and size rectangle
+        x (float): X-coordinate of the tower on the map.
+        y (float): Y-coordinate of the tower on the map.
+        radius (float): Radius of how large the tower is.
+        level (int): Current upgrade level of the tower.
+        range (float): Radius within which the tower can attack balloons.
+        cost (int): Purchase or upgrade cost of the tower.
+        damage (int): Amount of damage dealt per attack.
+        attack_speed (float): Number of attacks per second.
+        cooldown (float): Time until the tower can attack again.
+        last_attack (float): Time of the last attack.
+        upgrade_cost (int): Cost to upgrade the tower.
+        image (Surface): The tower's sprite image
+        rect (Rect): The tower's position and size rectangle
     """
 
     def __init__(self):
+        """
+        Initialize base tower attributes and sprite setup.
+        """
         super().__init__()
         self.x = 0
         self.y = 0
@@ -49,7 +59,12 @@ class Tower(pygame.sprite.Sprite):
         self.image_path = None  # Store image path for cache
 
     def load_image(self, image_path):
-        """Load and scale the tower image"""
+        """
+        Load and cache the tower's image from disk, scaling to the tower radius.
+
+        Args:
+            image_path (str): Path to the image file.
+        """
         self.image_path = image_path  # Store for rotation
         try:
             if image_path in TOWER_IMAGES:
@@ -82,7 +97,12 @@ class Tower(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
 
     def update_angle(self, balloons):
-        """Update the angle to face the nearest balloon in range."""
+        """
+        Rotate the tower to face the nearest valid balloon.
+
+        Args:
+            balloons (list[Balloon]): List of active balloons to target.
+        """
         target = self.find_target(balloons)
         if target:
             dx = target.x - self.x
@@ -90,7 +110,12 @@ class Tower(pygame.sprite.Sprite):
             self.angle = (math.degrees(math.atan2(-dy, dx)) + 90) % 360
 
     def update(self, speed_multiplier=1):
-        """Update method required by pygame.sprite.Sprite"""
+        """
+        Update sprite position and rotation; adjust cooldowns by multiplier.
+
+        Args:
+            speed_multiplier (float): Factor to speed up or slow down firing rates.
+        """
         if self.rect:
             self.rect.centerx = int(self.x)
             self.rect.centery = int(self.y)
@@ -105,19 +130,26 @@ class Tower(pygame.sprite.Sprite):
         self.current_cooldown = self.cooldown / speed_multiplier
 
     def update_position(self, x, y):
-        """Update tower position and rectangle"""
+        """
+        Move the tower to a new coordinate and update its sprite rect.
+
+        Args:
+            x (float): New x-coordinate.
+            y (float): New y-coordinate.
+        """
         self.x = x
         self.y = y
         self.rect.center = (int(x), int(y))
 
     def in_range(self, target):
         """
-        checks if a balloon is in range of the tower
+        Determine if a given point is within the tower's attack radius.
 
         Args:
-            target (list): contains the x and y coords of a ballon
+            target (tuple[float, float]): (x, y) coordinates of the target point.
+
         Returns:
-            boolean: represents whether the balloon is in range or not
+            bool: True if within range, False otherwise.
         """
         x_distance = target[0] - self.x
         y_distance = target[1] - self.y
@@ -126,7 +158,15 @@ class Tower(pygame.sprite.Sprite):
         return False
 
     def find_target(self, balloons):
-        """Find the balloon in range that is farthest along the path."""
+        """
+        Select the balloon furthest along its path within range.
+
+        Args:
+            balloons (list[Balloon]): Active balloons.
+
+        Returns:
+            Balloon or None: Chosen target or None if no valid targets.
+        """
         targets_in_range = [
             balloon
             for balloon in balloons
@@ -140,7 +180,14 @@ class Tower(pygame.sprite.Sprite):
 
     def attack(self, balloons, current_time):
         """
-        Attack and return a list of (balloon, reward) pairs for money collection.
+        Execute an attack if cooldown allows; return popped rewards.
+
+        Args:
+            balloons (list[Balloon]): Active balloon instances.
+            current_time (float): Current game time in milliseconds.
+
+        Returns:
+            list[tuple[Balloon, int]]: List of (balloon, reward) for popped balloons.
         """
         rewards = []
         if not balloons:
@@ -181,12 +228,12 @@ class Tower(pygame.sprite.Sprite):
 
     def upgrade(self):
         """
-        Upgrade tower attributes at a cost.
+        Increase tower stats and level, applying upgrade cost multiplier.
         """
         print(
             f"[Upgrade] {self.__class__.__name__}: damage {self.damage} →"
             f" {self.damage+1}"
-        )  # for debugging
+        )
 
         self.level += 1
         self.damage += 1
@@ -197,7 +244,10 @@ class Tower(pygame.sprite.Sprite):
 
     def sell(self):
         """
-        Return partial cost for selling the tower.
+        Calculate sell value as a fraction of the tower's upgrade cost.
+
+        Returns:
+            float: Amount refunded to the player.
         """
         return self.upgrade_cost * 0.7
 

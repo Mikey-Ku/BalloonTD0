@@ -1,9 +1,8 @@
 /* docs/style.css */
 
-/* ── IMPORT & FONT ───────────────────────────────────────────────────────────── */
+/* IMPORT & FONT */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-/* ── GLOBAL RESET ────────────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -16,14 +15,14 @@ body {
   text-align: center;
 }
 
-/* ── HEADER BAR ─────────────────────────────────────────────────────────────── */
+/* HEADER BAR */
 .site-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   background: rgba(17, 17, 17, 0.95);
-  padding: 0.75rem 2rem;           /* smaller vertical padding to tighten the bar */
+  padding: 0.75rem 2rem;          
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -38,7 +37,7 @@ body {
   text-align: left;               /* keep the title flush left */
 }
 
-/* ── NAV LINKS ──────────────────────────────────────────────────────────────── */
+/* NAV LINKS */
 .site-nav {
   display: flex;
   gap: 1rem;
@@ -46,7 +45,7 @@ body {
 
 .site-nav a {
   color: #1e90ff;
-  font-size: 1.125rem;            /* slightly smaller for balance */
+  font-size: 1.125rem;           
   font-weight: bold;
   text-decoration: none;
   transition: color 0.3s ease;
@@ -56,21 +55,20 @@ body {
   text-decoration: underline;
 }
 
-/* ── CONTENT PADDING ───────────────────────────────────────────────────────── */
+/* CONTENT PADDING */
 .content,
 main {
   /* push everything down so it's not hidden behind the fixed header */
   padding-top: 3.5rem;            /* approx equal to header height */
 }
-/* ── FIX ANCHOR SCROLLING UNDER FIXED HEADER ───────────────────────────── */
+
+/* FIX ANCHOR SCROLLING UNDER FIXED HEADER */
 .content {
-    /* push content down */
     padding-top: 3.5rem;
-    /* leave 3.5rem of “scroll padding” so anchors never go beneath the header */
     scroll-padding-top: 3.5rem;
   }
   
-/* ── HIDE AUTO-GENERATED ANCHORS ───────────────────────────────────────────── */
+/* HIDE AUTO-GENERATED ANCHORS */
 .content h1 a,
 .content h2 a,
 .content h3 a,
@@ -80,7 +78,7 @@ main {
   display: none !important;
 }
 
-/* ── SECTION HEADERS ───────────────────────────────────────────────────────── */
+/* SECTION HEADERS */
 .content h2 {
     display: inline-block;
     position: relative;
@@ -99,28 +97,46 @@ main {
     background: #1e90ff;
   }
   
-  /* ── FORCE FEATURES HEADING TO BREAK ─────────────────────────────────── */
+  /* VIDEO EMBED WRAPPER */
+.video-wrapper {
+  width: 100%;
+  max-width: 800px;       
+  margin: 1rem auto;      
+  position: relative;    
+  padding-bottom: 56.25%; /* 16:9 ratio (9/16 = .5625) */
+  height: 0;
+  overflow: hidden;
+}
+.video-wrapper iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+  /* FORCE FEATURES HEADING TO BREAK */
   h2#features {
-    display: block;       /* full-width, so next element drops below */
-    margin-bottom: 1rem;  /* breathing room under “Features” */
+    display: block;       
+    margin-bottom: 1rem;  
   }
   
-/* ── FEATURES ── */
+/* FEATURES */
 #features {
-    text-align: center;      /* center the list container */
+    text-align: center;     
   }
   
   #features ul {
-    padding-left: 0;         /* remove default indent */
-    margin: 0 auto 2rem;     /* center and add bottom spacing */
-    max-width: 800px;        /* keep your width cap */
+    padding-left: 0;        
+    margin: 0 auto 2rem;     
+    max-width: 800px;        
     
-    list-style-position: inside;  /* bullet becomes part of text flow */
-    text-align: center;           /* center bullet + text together */
+    list-style-position: inside;  
+    text-align: center;         
   }
   
   #features ul li {
-    margin: 0.5rem 0;        /* vertical spacing between items */
+    margin: 0.5rem 0;      
   }
   
   
@@ -165,7 +181,7 @@ main {
   text-align: center;
 }
 
-/* ── UNIFORM BALLOON WIDTH ───────────────────────────────────────────────── */
+/* UNIFORM BALLOON WIDTH  */
 .balloon-grid .balloon-item {
     width: 150px;
     flex: 0 0 150px;
@@ -175,70 +191,70 @@ main {
     height: auto;
   }
 
-/* ── GAMEPLAY SCREENSHOTS ─────────────────────────────────────────────────── */
+/* GAMEPLAY SCREENSHOTS */
 .screenshot-grid {
     display: grid;
     grid-template-columns: repeat(3, 480px);  /* three 480px-wide columns */
     justify-content: center;                  /* center the whole grid */
     gap: 1.5rem;
-    margin: 1rem auto 2rem;                   /* auto-side margins center container */
+    margin: 1rem auto 2rem;                  
   }
   
   .screenshot-grid img {
-    width: 97%;   /* fill its 480px cell */
+    width: 97%;  
     height: auto;
     border: 2px solid #333;
     border-radius: 6px;
-    max-width: none; /* allow it to grow to full cell width */
+    max-width: none; 
   }
   
 
-/* ── FOOTER ───────────────────────────────────────────────────────────────── */
+/* FOOTER */
 footer {
   padding: 2rem 0;
   background: #111;
   font-size: 0.9rem;
 }
 
-/* ── INSTALLATION STEPS ───────────────────────────────────────────────────── */
+/* INSTALLATION STEPS */
 #installation ol {
     max-width: 600px;       /* cap width so text lines aren’t super wide */
-    margin: 0 auto 2rem;    /* center it with some bottom space */
-    padding-left: 0;        /* remove default indent */
+    margin: 0 auto 2rem;    
+    padding-left: 0;       
   }
   
   #installation ol li {
-    margin: 0.75rem 0;      /* space between steps */
-    font-size: 1.125rem;    /* match your body text size */
+    margin: 0.75rem 0;      
+    font-size: 1.125rem;    
   }
   
   #installation ol li code {
     display: inline-block;  
-    padding: 0.2rem 0.5rem;  /* tiny pill around code */
+    padding: 0.2rem 0.5rem; 
     background: rgba(255,255,255,0.1);
     border-radius: 4px;
     font-family: monospace;
   }
   
-  /* ── TYPOGRAPHY SCALE ───────────────────────────────────────────────────────── */
+  /* TYPOGRAPHY SCALE */
 
 /* bump up the root font-size (all rems will scale from here) */
 html {
-    font-size: 45px;    /* default was likely 16px—18px = ~12.5% larger */
+    font-size: 45px;    
   }
   
   /* headings */
   .site-header h1 {
-    font-size: 2.25rem;    /* was 2.25rem; now ~54px */
+    font-size: 2.25rem;    
   }
   
   .content h2 {
-    font-size: 2.5rem;  /* was 1.75rem; now ~45px */
+    font-size: 2.5rem;  
   }
   
   /* nav links */
   .site-nav a {
-    font-size: 1.5rem; /* was 1.125rem; now ~22px */
+    font-size: 1.5rem; 
   }
   
   /* body copy, list items, captions */
@@ -251,7 +267,7 @@ html {
   .balloon-grid figcaption,
   .screenshot-grid em,
   .screenshot-grid p {
-    font-size: 1.225rem; /* ~20px base copy */
+    font-size: 1.225rem; 
   }
   
   
