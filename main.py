@@ -1,5 +1,8 @@
 """
 Main game file that initializes and runs the game loop.
+
+This module contains the `Game` class, which manages the game state,
+handles user input, and runs the main game loop.
 """
 
 import pygame
@@ -17,8 +20,14 @@ from user_interface import GameUI
 
 
 class Game:
-    def __init__(self):
+    """
+    Main game class that handles initialization, game state, and the game loop.
+    """
 
+    def __init__(self):
+        """
+        Initializes the game, including Pygame, assets, and game variables.
+        """
         self.round_started = False
         self.balloons_to_spawn = 0
         self.current_round = 1
@@ -45,6 +54,7 @@ class Game:
         self.track.waypoints = self.waypoints
         self.balloons = []
         self.towers = []
+        self.balloons_queue = []
         self.tower_sprites = pygame.sprite.Group()
         self.money = 200
         self.lives = 100
@@ -78,6 +88,9 @@ class Game:
         )
 
     def draw_menu(self):
+        """
+        Draws the main menu screen with the title, play button, and instructions button.
+        """
         # draw blurred background
         self.screen.blit(self.menu_background, (0, 0))
 
@@ -113,6 +126,9 @@ class Game:
         self.screen.blit(instr_surf, instr_rect)
 
     def draw_instructions(self):
+        """
+        Draws the instructions screen with gameplay instructions and a back button.
+        """
         # draw the same blurred background
         self.screen.blit(self.menu_background, (0, 0))
 
@@ -163,14 +179,18 @@ class Game:
         self.screen.blit(back_surf, back_rect)
 
     def toggle_speed(self):
-        """Toggle between normal and 2x speed."""
+        """
+        Toggles the game speed between normal (1x) and fast (2x).
+        """
         if self.speed_multiplier == 1:
             self.speed_multiplier = 2
         else:
             self.speed_multiplier = 1
 
     def draw_stats(self):
-        """Draw money, lives, round counter, and play/speed button on screen."""
+        """
+        Draws the player's stats (money, lives, round counter) and the play/speed button.
+        """
         outline_color = (0, 0, 0)
         # ——— Money with black outline ———
         money_str = f"Money: ${self.money}"
@@ -223,8 +243,9 @@ class Game:
         self.screen.blit(text_surface, text_rect)
 
     def prepare_round(self):
-        """Prepare the balloon queue based on current round's config."""
-        self.balloons_queue = []
+        """
+        Prepares the balloon queue for the current round based on the round configuration.
+        """
         round_index = self.current_round - 1
 
         if round_index < len(self.round_spawn_list):
@@ -237,10 +258,9 @@ class Game:
 
     def end_game(self):
         """
-        Ends the game with a win or a lose case.
-        Clears UI.
-        Has a restart button.
-        Make its clear if win or lose.
+        Ends the game and displays a win or lose screen.
+
+        The player can restart the game or quit from this screen.
         """
         game_over = True
         if self.lives <= 0:
@@ -274,7 +294,11 @@ class Game:
                         game_over = False
 
     def run(self):
-        """Main game loop"""
+        """
+        Runs the main game loop, handling events, updating game state, and rendering.
+
+        The game loop manages different states such as the menu, instructions, and playing.
+        """
         clock = pygame.time.Clock()
         running = True
 
@@ -336,7 +360,6 @@ class Game:
                             else:
                                 self.toggle_speed()
 
-                    # Pass everything else to your UI (tower selections, upgrades, etc.)
                     self.ui.handle_event(event)
 
             # DRAWING
@@ -375,7 +398,7 @@ class Game:
                     tower.update_angle(self.balloons)
                     popped = tower.attack(self.balloons, current_time)
                     if popped:
-                        for bal, rew in popped:
+                        for _, rew in popped:
                             self.money += rew
                     if hasattr(tower, "rect") and tower.rect:
                         tower.rect.centerx = int(tower.x)

@@ -1,7 +1,8 @@
 """
-rounds.py
+Module for configuring the rounds in the Balloon Tower Defense game.
 
-Defines the sequence of rounds (waves) for the Balloon TD game.
+This module defines the configuration for each round, including the types
+and quantities of balloons to spawn and the spawn delay.
 """
 
 rounds_config = [
