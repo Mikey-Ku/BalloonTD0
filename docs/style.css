@@ -62,7 +62,14 @@ main {
   /* push everything down so it's not hidden behind the fixed header */
   padding-top: 3.5rem;            /* approx equal to header height */
 }
-
+/* ── FIX ANCHOR SCROLLING UNDER FIXED HEADER ───────────────────────────── */
+.content {
+    /* push content down */
+    padding-top: 3.5rem;
+    /* leave 3.5rem of “scroll padding” so anchors never go beneath the header */
+    scroll-padding-top: 3.5rem;
+  }
+  
 /* ── HIDE AUTO-GENERATED ANCHORS ───────────────────────────────────────────── */
 .content h1 a,
 .content h2 a,
@@ -170,23 +177,21 @@ main {
 
 /* ── GAMEPLAY SCREENSHOTS ─────────────────────────────────────────────────── */
 .screenshot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin: 1rem 0 2rem;
-}
-.screenshot-grid img {
-  width: 100%;
-  height: auto;
-  border: 2px solid #333;
-  border-radius: 6px;
-}
-.screenshot-grid em,
-.screenshot-grid p {
-  margin-top: 0.5rem;
-  color: #ccc;
-  font-style: italic;
-}
+    display: grid;
+    grid-template-columns: repeat(3, 480px);  /* three 480px-wide columns */
+    justify-content: center;                  /* center the whole grid */
+    gap: 1.5rem;
+    margin: 1rem auto 2rem;                   /* auto-side margins center container */
+  }
+  
+  .screenshot-grid img {
+    width: 97%;   /* fill its 480px cell */
+    height: auto;
+    border: 2px solid #333;
+    border-radius: 6px;
+    max-width: none; /* allow it to grow to full cell width */
+  }
+  
 
 /* ── FOOTER ───────────────────────────────────────────────────────────────── */
 footer {
@@ -194,3 +199,59 @@ footer {
   background: #111;
   font-size: 0.9rem;
 }
+
+/* ── INSTALLATION STEPS ───────────────────────────────────────────────────── */
+#installation ol {
+    max-width: 600px;       /* cap width so text lines aren’t super wide */
+    margin: 0 auto 2rem;    /* center it with some bottom space */
+    padding-left: 0;        /* remove default indent */
+  }
+  
+  #installation ol li {
+    margin: 0.75rem 0;      /* space between steps */
+    font-size: 1.125rem;    /* match your body text size */
+  }
+  
+  #installation ol li code {
+    display: inline-block;  
+    padding: 0.2rem 0.5rem;  /* tiny pill around code */
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    font-family: monospace;
+  }
+  
+  /* ── TYPOGRAPHY SCALE ───────────────────────────────────────────────────────── */
+
+/* bump up the root font-size (all rems will scale from here) */
+html {
+    font-size: 45px;    /* default was likely 16px—18px = ~12.5% larger */
+  }
+  
+  /* headings */
+  .site-header h1 {
+    font-size: 2.25rem;    /* was 2.25rem; now ~54px */
+  }
+  
+  .content h2 {
+    font-size: 2.5rem;  /* was 1.75rem; now ~45px */
+  }
+  
+  /* nav links */
+  .site-nav a {
+    font-size: 1.5rem; /* was 1.125rem; now ~22px */
+  }
+  
+  /* body copy, list items, captions */
+  body,
+  #about,
+  #installation,
+  #features ul li,
+  #installation ol li,
+  .tower-grid figcaption,
+  .balloon-grid figcaption,
+  .screenshot-grid em,
+  .screenshot-grid p {
+    font-size: 1.225rem; /* ~20px base copy */
+  }
+  
+  
