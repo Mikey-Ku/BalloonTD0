@@ -144,7 +144,11 @@ class Game:
         )  # 4px border
 
         back_txt = "Back"
-        bx, by = self.back_button.center
+        bx, by = (
+            (self.back_button.centerx, self.back_button.centery)
+            if hasattr(self.back_button, "centerx")
+            else (0, 0)
+        )
         # outline for Back label
         for dx in range(-thickness, thickness + 1):
             for dy in range(-thickness, thickness + 1):
