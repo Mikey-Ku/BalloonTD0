@@ -3,7 +3,7 @@ from track import Track, load_waypoints_from_csv
 
 
 @pytest.fixture
-def sample_track():
+def example_track():
     """
     Fixture to provide a sample Track instance.
     """
@@ -16,7 +16,7 @@ def sample_waypoints_csv(tmp_path):
     Fixture to create a temporary CSV file with sample waypoints.
     """
     csv_path = tmp_path / "waypoints.csv"
-    with open(csv_path, "w") as f:
+    with open(csv_path, "w", encoding="utf-8") as f:
         f.write("x,y\n")
         f.write("100,100\n")
         f.write("200,200\n")
@@ -24,14 +24,14 @@ def sample_waypoints_csv(tmp_path):
     return csv_path
 
 
-def test_load_waypoints_from_csv(sample_waypoints_csv):
+def test_load_waypoints_from_csv(sample_csv):
     """
     Test that waypoints are correctly loaded from a CSV file.
 
     Asserts:
         - The returned list matches the waypoints in the CSV file.
     """
-    waypoints = load_waypoints_from_csv(sample_waypoints_csv)
+    waypoints = load_waypoints_from_csv(sample_csv)
     assert waypoints == [(100.0, 100.0), (200.0, 200.0), (300.0, 300.0)]
 
 

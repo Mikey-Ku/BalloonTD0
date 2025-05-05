@@ -25,7 +25,7 @@ def pygame_setup():
 
 
 @pytest.fixture
-def waypoints_instance():
+def waypoints():
     """
     Return a simple horizontal path for balloon movement.
     """
