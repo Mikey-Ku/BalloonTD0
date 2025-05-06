@@ -6,8 +6,16 @@ Covers:
 - Toggle behavior of the tower menu
 """
 
+import pytest
 import pygame
 from user_interface import TowerPurchasingUI, TowerMenu
+
+
+@pytest.fixture(autouse=True)
+def pygame_setup_and_teardown():
+    pygame.init()
+    yield
+    pygame.quit()
 
 
 def test_tower_purchasing_ui_handles_click_inside():
