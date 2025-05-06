@@ -51,7 +51,7 @@ def basic_tower():
     return t
 
 
-def test_in_range(basic_tower):
+def test_in_range(tower_instance):
     """
     Test whether a point is within the tower's range.
 
@@ -59,11 +59,11 @@ def test_in_range(basic_tower):
         - (110, 110) is within range → True
         - (200, 200) is outside range → False
     """
-    assert basic_tower.in_range((110, 110)) is True
-    assert basic_tower.in_range((200, 200)) is False
+    assert tower_instance.in_range((110, 110)) is True
+    assert tower_instance.in_range((200, 200)) is False
 
 
-def test_find_target_prefers_farthest_waypoint(basic_tower):
+def test_find_target_prefers_farthest_waypoint(tower_instance):
     """
     Verify that the tower selects the target with the farthest progress along the path.
 
@@ -75,11 +75,11 @@ def test_find_target_prefers_farthest_waypoint(basic_tower):
     b1 = TestBalloon(105, 105, current_waypoint=2)
     b2 = TestBalloon(120, 120, current_waypoint=1)
     b3 = TestBalloon(200, 200, current_waypoint=3)
-    target = basic_tower.find_target([b1, b2, b3])
+    target = tower_instance.find_target([b1, b2, b3])
     assert target == b1
 
 
-def test_attack_respects_cooldown(basic_tower):
+def test_attack_respects_cooldown(tower_instance):
     """
     Test that the tower respects cooldown between attacks.
 
@@ -88,20 +88,20 @@ def test_attack_respects_cooldown(basic_tower):
         - Second attack occurs too soon → returns empty list []
     """
     balloon = TestBalloon(100, 100)
-    basic_tower.range = 1000
+    tower_instance.range = 1000
     now = time.time() * 1000
 
     balloons = [balloon]
-    rewards = basic_tower.attack(balloons, now + 2000)
+    rewards = tower_instance.attack(balloons, now + 2000)
     assert len(rewards) == 1
     assert rewards[0][1] == 5
 
     balloons = [TestBalloon(100, 100)]
-    rewards = basic_tower.attack(balloons, now + 2001)
+    rewards = tower_instance.attack(balloons, now + 2001)
     assert rewards == []
 
 
-def test_upgrade_increases_stats(basic_tower):
+def test_upgrade_increases_stats(tower_instance):
     """
     Ensure tower upgrades increase damage and range.
 
@@ -109,19 +109,19 @@ def test_upgrade_increases_stats(basic_tower):
         - Damage increases by 1
         - Range increases (greater than previous)
     """
-    old_damage = basic_tower.damage
-    old_range = basic_tower.range
-    basic_tower.upgrade()
-    assert basic_tower.damage == old_damage + 1
-    assert basic_tower.range > old_range
+    old_damage = tower_instance.damage
+    old_range = tower_instance.range
+    tower_instance.upgrade()
+    assert tower_instance.damage == old_damage + 1
+    assert tower_instance.range > old_range
 
 
-def test_sell_returns_correct_value(basic_tower):
+def test_sell_returns_correct_value(tower_instance):
     """
     Verify that the tower returns 70% of its upgrade cost when sold.
 
     Asserts:
         - Return value equals upgrade_cost * 0.7
     """
-    expected_value = basic_tower.upgrade_cost * 0.7
-    assert basic_tower.sell() == expected_value
+    expected_value = tower_instance.upgrade_cost * 0.7
+    assert tower_instance.sell() == expected_value
