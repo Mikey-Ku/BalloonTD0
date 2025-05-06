@@ -1,6 +1,11 @@
 """
-Test file for track.py
-Validates the behavior of the Track class and waypoint loading utilities.
+Tests for track.py module.
+
+This module contains unit tests for the Track class and related utilities:
+    * Track initialization
+    * Waypoint loading
+    * Tower placement validation
+    * Position update mechanics
 """
 
 import pytest
@@ -33,23 +38,30 @@ def sample_waypoints_csv(tmp_path):
 
 
 def test_load_waypoints_from_csv(sample_waypoints_csv):
-    """
-    Test that waypoints are correctly loaded from a CSV file.
+    """Tests CSV waypoint loading functionality.
 
-    Asserts:
-        - The returned list matches the waypoints in the CSV file.
+    Args:
+        sample_waypoints_csv: A fixture providing a temporary CSV file with test waypoints.
+
+    Tests:
+        Verifies that:
+            * Waypoints are correctly parsed from CSV
+            * Coordinates are converted to proper float tuples
     """
     waypoints = load_waypoints_from_csv(sample_waypoints_csv)
     assert waypoints == [(100.0, 100.0), (200.0, 200.0), (300.0, 300.0)]
 
 
 def test_is_valid_tower_position_no_waypoints(sample_track):
-    """
-    Test tower placement validation when there are no waypoints.
+    """Tests tower placement validation with empty track.
 
-    Asserts:
-        - Towers can be placed anywhere within the track boundaries.
-        - Towers cannot be placed outside track boundaries.
+    Args:
+        sample_track: A Track fixture with no waypoints.
+
+    Tests:
+        Verifies that:
+            * Positions within boundaries are valid
+            * Positions outside boundaries are invalid
     """
     # Inside boundaries should be valid
     assert sample_track.is_valid_tower_position(100, 100) is True

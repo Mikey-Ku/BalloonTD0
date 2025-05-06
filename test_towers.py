@@ -1,6 +1,12 @@
 """
-Test file for towers.py
-Validates core behavior of the Tower class, including targeting, attack logic, upgrades, and selling.
+Tests for towers.py module.
+
+This module contains unit tests for the Tower class, validating:
+    * Core tower behavior
+    * Targeting logic
+    * Attack mechanics
+    * Upgrade system
+    * Selling functionality
 """
 
 import pytest
@@ -31,7 +37,7 @@ class TestBalloon:
 
 @pytest.fixture(autouse=True)
 def mock_pygame():
-    """Mock pygame functions that might be used in the Tower class"""
+    """Mock pygame functions that might be used in the Tower class."""
     with patch("pygame.sprite.Sprite.__init__", return_value=None), patch(
         "pygame.image.load", return_value=MagicMock()
     ), patch("pygame.transform.scale", lambda img, size: img), patch(
@@ -46,16 +52,15 @@ def mock_pygame():
 
 @pytest.fixture
 def tower_instance():
-    """
-    Create and return a basic Tower instance with known parameters.
+    """Creates and returns a basic Tower instance with known parameters.
 
     Returns:
-        A Tower object with:
-        - x, y = 100
-        - range = 50
-        - damage = 1
-        - attack_speed = 1
-        - cooldown = 1
+        Tower: A Tower object with:
+            * x, y = 100
+            * range = 50
+            * damage = 1
+            * attack_speed = 1
+            * cooldown = 1
     """
     # Instantiate a Tower with mocked pygame components
     tower = Tower()
@@ -83,33 +88,37 @@ def tower_instance():
         # Safely call update if it exists
         try:
             tower.update()
-        except:
-            # If update fails, create a simple version
+        except AttributeError:
             tower.update = lambda *args: None
 
     return tower
 
 
 def test_in_range(tower_instance):
-    """
-    Test whether a point is within the tower's range.
+    """Tests if points are correctly identified as within tower range.
 
-    Asserts:
-        - (110, 110) is within range → True
-        - (200, 200) is outside range → False
+    Args:
+        tower_instance: A Tower fixture with predefined range of 50 units.
+
+    Tests:
+        Verifies that:
+            * Point (110, 110) is within range
+            * Point (200, 200) is outside range
     """
     assert tower_instance.in_range((110, 110)) is True
     assert tower_instance.in_range((200, 200)) is False
 
 
 def test_find_target_prefers_farthest_waypoint(tower_instance):
-    """
-    Verify that the tower selects the target with the farthest progress along the path.
+    """Tests if tower correctly prioritizes balloons by waypoint progress.
 
-    Asserts:
-        - Among three balloons, the one with the highest current_waypoint (in range) is selected
-        - Balloon b1 (waypoint=2) is selected over b2 (waypoint=1)
-        - Balloon b3 is out of range and ignored
+    Args:
+        tower_instance: A Tower fixture with predefined range and targeting.
+
+    Tests:
+        Verifies that:
+            * Among multiple balloons in range, selects the one with highest waypoint
+            * Ignores balloons outside range regardless of waypoint
     """
     b1 = TestBalloon(105, 105, current_waypoint=2)
     b2 = TestBalloon(120, 120, current_waypoint=1)
@@ -135,12 +144,15 @@ def test_find_target_prefers_farthest_waypoint(tower_instance):
 
 
 def test_upgrade_increases_stats(tower_instance):
-    """
-    Ensure tower upgrades increase damage and range.
+    """Tests if tower stats increase properly after upgrade.
 
-    Asserts:
-        - Damage increases by 1
-        - Range increases (greater than previous)
+    Args:
+        tower_instance: A Tower fixture with base stats.
+
+    Tests:
+        Verifies that:
+            * Damage increases by 1
+            * Range increases by 10%
     """
     old_damage = tower_instance.damage
     old_range = tower_instance.range
@@ -161,11 +173,14 @@ def test_upgrade_increases_stats(tower_instance):
 
 
 def test_sell_returns_correct_value(tower_instance):
-    """
-    Verify that the tower returns 70% of its upgrade cost when sold.
+    """Tests if tower selling returns correct money value.
 
-    Asserts:
-        - Return value equals upgrade_cost * 0.7
+    Args:
+        tower_instance: A Tower fixture with defined upgrade cost.
+
+    Tests:
+        Verifies that:
+            * Selling returns exactly 70% of upgrade cost
     """
     # Ensure tower has sell method
     if not hasattr(tower_instance, "sell"):

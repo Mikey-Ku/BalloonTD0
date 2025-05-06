@@ -15,8 +15,6 @@ from unittest.mock import patch, MagicMock
 from main import Game
 
 
-# This will patch pygame.init and other pygame related methods
-# to prevent them from being called during tests
 @pytest.fixture
 def mock_pygame(monkeypatch):
     """Mock pygame module to prevent initialization during tests"""
@@ -35,7 +33,6 @@ def mock_pygame(monkeypatch):
     monkeypatch.setattr("pygame.Rect", lambda *args: MagicMock())
 
 
-# Mock for Track class
 class MockTrack:
     def __init__(self):
         self.waypoints = []
@@ -75,14 +72,17 @@ def game_instance(monkeypatch):
 
 
 def test_initial_state(game_instance):
-    """
-    Test that the game's initial state is correctly set.
+    """Tests game initialization state.
 
-    Asserts:
-        - `game.money == 200`: player starts with 200 money
-        - `game.lives == 100`: player starts with 100 lives
-        - `game.current_round == 1`: round count starts at 1
-        - `not game.round_started`: no round is active initially
+    Args:
+        game_instance: A Game fixture with mocked pygame components.
+
+    Tests:
+        Verifies initial values for:
+            * Player money (200)
+            * Player lives (100)
+            * Current round (1)
+            * Round started flag (False)
     """
     assert game_instance.money == 200
     assert game_instance.lives == 100

@@ -1,5 +1,12 @@
 """
-Test file for balloon.py
+Tests for balloon.py module.
+
+This module contains unit tests for balloon classes:
+    * Basic balloon attributes
+    * Movement mechanics
+    * Damage and popping behavior
+    * Child balloon spawning
+    * Balloon tier relationships
 """
 
 import pytest
@@ -33,15 +40,18 @@ def waypoints():
 
 
 def test_red_balloon_basic(waypoints):
-    """
-    Test that a RedBalloon has the correct initial attributes.
+    """Tests RedBalloon initialization and attributes.
 
-    Asserts:
-        - b.type is "red"
-        - b.health is 1
-        - b.reward is 3
-        - b.damage is 1
-        - b.color is (255, 0, 0)
+    Args:
+        waypoints: A fixture providing a simple horizontal path.
+
+    Tests:
+        Verifies basic balloon properties:
+            * Correct type identifier
+            * Health value
+            * Reward amount
+            * Damage value
+            * Color tuple
     """
     b = RedBalloon(waypoints)
     assert b.type == "red"
