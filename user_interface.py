@@ -18,7 +18,7 @@ class TowerPurchasingUI:
             rect (tuple[int, int, int, int]): Button position and size as (x, y, width, height).
             text (str): Label to display on the button.
             callback (Callable[[], None]): Function to invoke when the button is clicked.
-            tower_cost (int, optional): Cost of the tower; used for enabling/disabling. Defaults to 0.
+            tower_cost (int): Cost of the tower; used for enabling/disabling. Defaults to 0.
         """
         self.rect = pygame.Rect(rect)
         self.text = text

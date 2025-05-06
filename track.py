@@ -39,8 +39,8 @@ class Track:
             bool: True if the position is valid for tower placement, False otherwise.
         """
         for waypoint in self.waypoints:
-            wx, wy = waypoint
-            distance = math.sqrt((x - wx) ** 2 + (y - wy) ** 2)
+            w_x, w_y = waypoint
+            distance = math.sqrt((x - w_x) ** 2 + (y - w_y) ** 2)
             if distance < self.tower_invalid_radius:
                 return False
         for tower in self.towers:
