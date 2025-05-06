@@ -130,8 +130,8 @@ class Balloon(pygame.sprite.Sprite):
         Args:
             screen (pygame.Surface): The surface to draw the balloon on.
         """
-        ox, oy = self.offset
-        self.rect.center = (int(self.x + ox), int(self.y + oy))
+        o_x, o_y = self.offset
+        self.rect.center = (int(self.x + o_x), int(self.y + o_y))
         screen.blit(self.image, self.rect)
 
     def move(self):
