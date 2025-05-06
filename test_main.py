@@ -10,8 +10,8 @@ This test suite covers:
 - Game over behavior
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
+import pytest
 from main import Game
 
 
