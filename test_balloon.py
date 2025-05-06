@@ -32,7 +32,7 @@ def waypoints():
     return [(0, 0), (10, 0), (20, 0), (30, 0)]
 
 
-def test_red_balloon_basic(waypoints_instance):
+def test_red_balloon_basic(waypoints):
     """
     Test that a RedBalloon has the correct initial attributes.
 
@@ -43,7 +43,7 @@ def test_red_balloon_basic(waypoints_instance):
         - b.damage is 1
         - b.color is (255, 0, 0)
     """
-    b = RedBalloon(waypoints_instance)
+    b = RedBalloon(waypoints)
     assert b.type == "red"
     assert b.health == 1
     assert b.reward == 3
@@ -51,14 +51,14 @@ def test_red_balloon_basic(waypoints_instance):
     assert b.color == (255, 0, 0)
 
 
-def test_balloon_movement(waypoints_instance):
+def test_balloon_movement(waypoints):
     """
     Ensure that a balloon eventually reaches the end of the path when moved repeatedly.
 
     Asserts:
         - At least one call to b.move() returns True (meaning it reached the end)
     """
-    b = BlueBalloon(waypoints_instance)
+    b = BlueBalloon(waypoints)
     reached_end = False
     for _ in range(10):
         if b.move():
@@ -67,7 +67,7 @@ def test_balloon_movement(waypoints_instance):
     assert reached_end
 
 
-def test_balloon_downgrade(waypoints_instance):
+def test_balloon_downgrade(waypoints):
     """
     Verify that damaging a BlueBalloon spawns a RedBalloon as its child.
 
@@ -75,25 +75,25 @@ def test_balloon_downgrade(waypoints_instance):
         - One child is returned
         - The child is an instance of RedBalloon
     """
-    b = BlueBalloon(waypoints_instance)
+    b = BlueBalloon(waypoints)
     children = b.take_damage(1)
     assert len(children) == 1
     assert isinstance(children[0], RedBalloon)
 
 
-def test_balloon_pops_fully(waypoints_instance):
+def test_balloon_pops_fully(waypoints):
     """
     Confirm that a RedBalloon with 1 health pops completely when taking 1 damage.
 
     Asserts:
         - No children are returned (empty list)
     """
-    b = RedBalloon(waypoints_instance)
+    b = RedBalloon(waypoints)
     result = b.take_damage(1)
     assert result == []
 
 
-def test_moab_spawns_children(waypoints_instance):
+def test_moab_spawns_children(waypoints):
     """
     Ensure that destroying a MOAB spawns 40 GreenBalloons with specific attributes.
 
@@ -102,7 +102,7 @@ def test_moab_spawns_children(waypoints_instance):
         - Each child is an instance of GreenBalloon
         - Each child has 'offset' and 'skip_frames' attributes
     """
-    moab = MoabBalloon(waypoints_instance)
+    moab = MoabBalloon(waypoints)
     children = moab.take_damage(999)
     assert len(children) == 40
     for child in children:
