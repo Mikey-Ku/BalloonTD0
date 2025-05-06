@@ -8,53 +8,61 @@ In this tower defense game, you must defend your territory against waves of colo
 
 ## Features
 
-- **Multiple Tower Types**  
-  - **Dart Tower** (fast, low damage)  
-  - **Sniper Tower** (high damage, long range)  
-  - **Tac Tower** (fast, short radius)  
+- **Multiple Tower Types**
+
+  - **Dart Tower** (fast, low damage)
+  - **Sniper Tower** (high damage, long range)
+  - **Tac Tower** (fast, short radius)
   - **Super Tower** (rapid-fire, extreme range)  
-  *(Defined in `towers.py`)*
+    _(Defined in `towers.py`)_
 
-- **Varied Balloon Enemies**  
-  - Red, Blue, Green, Yellow, Pink balloons with increasing health and speed  
+- **Varied Balloon Enemies**
+
+  - Red, Blue, Green, Yellow, Pink balloons with increasing health and speed
   - **MOAB** boss that splits into smaller balloons upon destruction  
-  *(Implemented in `balloon.py`)*
+    _(Implemented in `balloon.py`)_
 
-- **Wave-Based Gameplay**  
-  - 20 configurable rounds with spawn delays and mixed balloon types  
+- **Wave-Based Gameplay**
+
+  - 20 configurable rounds with spawn delays and mixed balloon types
   - Bonus income awarded at the end of each round  
-  *(Configured in `rounds.py`)*
+    _(Configured in `rounds.py`)_
 
-- **Dynamic Path & Map**  
-  - Waypoints loaded from `equidistant_points.csv` for easy map customization  
+- **Dynamic Path & Map**
+
+  - Waypoints loaded from `equidistant_points.csv` for easy map customization
   - Valid tower placements determined at runtime  
-  *(Logic in `track.py`)*
+    _(Logic in `track.py`)_
 
-- **Interactive UI**  
-  - Click buttons or press **SPACE** to start rounds  
-  - Toggle game speed between 1× and 2×  
+- **Interactive UI**
+
+  - Click buttons or press **SPACE** to start rounds
+  - Toggle game speed between 1× and 2×
   - Place, upgrade, or sell towers via on-screen controls  
-  *(See `user_interface.py`)*
+    _(See `user_interface.py`)_
 
-- **Visuals & Audio**  
+- **Visuals & Audio**
+
   - Sprite assets in:
     - `balloon_images/`
     - `monkey_images/`
     - `background_images/`
   - Looping main theme in `soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3`
 
-- **Website & Documentation**  
+- **Website & Documentation**
   - Static site source (for GitHub Pages) in `docs/`
 
 ## Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/olincollege/BalloonTD0.git
    cd BalloonTD0
    ```
 
 2. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -70,6 +78,7 @@ In this tower defense game, you must defend your territory against waves of colo
 ## Usage
 
 Run the game:
+
 ```bash
 python main.py
 ```

@@ -318,8 +318,8 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         # Restart the game
-                        self.__init__()
-                        self.run()
+                        new_game = Game()
+                        new_game.run()
                         return
                     if event.key == pygame.K_q:
                         game_over = False
