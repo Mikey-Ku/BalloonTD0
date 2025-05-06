@@ -130,8 +130,8 @@ class Balloon(pygame.sprite.Sprite):
         Args:
             screen (pygame.Surface): The surface to draw the balloon on.
         """
-        ox, oy = self.offset
-        self.rect.center = (int(self.x + ox), int(self.y + oy))
+        x_offset, y_offset = self.offset
+        self.rect.center = (int(self.x + x_offset), int(self.y + y_offset))
         screen.blit(self.image, self.rect)
 
     def move(self):
@@ -387,22 +387,22 @@ class MoabBalloon(Balloon):
 
         while len(children) < num_kids:
             theta = random.uniform(0, 2 * math.pi)
-            r = random.uniform(0, spread_radius)
-            dx = math.cos(theta) * r
-            dy = math.sin(theta) * r
+            radius = random.uniform(0, spread_radius)
+            dx = math.cos(theta) * radius
+            dy = math.sin(theta) * radius
 
             pix = (int(dx), int(dy))
             if pix in used_pixels:
                 continue
             used_pixels.add(pix)
 
-            g = GreenBalloon(self.waypoints)
-            g.x, g.y = self.x, self.y
-            g.current_waypoint = self.current_waypoint
-            g.offset = (dx, dy)
-            g.skip_frames = 12
+            damaged_balloon = GreenBalloon(self.waypoints)
+            damaged_balloon.x, damaged_balloon.y = self.x, self.y
+            damaged_balloon.current_waypoint = self.current_waypoint
+            damaged_balloon.offset = (dx, dy)
+            damaged_balloon.skip_frames = 12
 
-            children.append(g)
+            children.append(damaged_balloon)
 
         return children
 
