@@ -57,6 +57,8 @@ class Tower(pygame.sprite.Sprite):
         self.radius = 15  # Default tower size
         self.original_image = None  # Store original image for rotation
         self.image_path = None  # Store image path for cache
+        self.current_attack_speed = self.attack_speed
+        self.current_cooldown = self.cooldown
 
     def load_image(self, image_path):
         """
@@ -81,11 +83,12 @@ class Tower(pygame.sprite.Sprite):
             self.image = self.original_image.copy()
             self.rect = self.image.get_rect(center=(int(self.x), int(self.y)))
 
-        except pygame.error as e:
+        except pygame.error as e:  # pylint: disable=no-member
             print(f"Error loading tower image '{image_path}': {e}")
             # Create a default circular surface if image loading fails
             self.original_image = pygame.Surface(
-                (self.radius * 2, self.radius * 2), pygame.SRCALPHA
+                (self.radius * 2, self.radius * 2),
+                pygame.SRCALPHA,  # pylint: disable=no-member
             )
             pygame.draw.circle(
                 self.original_image,
