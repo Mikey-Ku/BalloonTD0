@@ -34,18 +34,41 @@ def mock_pygame(monkeypatch):
 
 
 class MockTrack:
+    """
+    A mock Track class for testing Game initialization.
+
+    Attributes:
+        waypoints (list of tuple): List of mock waypoint coordinates.
+    """
+
     def __init__(self):
         self.waypoints = []
 
 
 # Mock for load_waypoints_from_csv
 def mock_load_waypoints():
+    """
+    Return a simple list of mock waypoints for testing.
+
+    Returns:
+        list of tuple: Ten waypoints spaced 10 units apart.
+    """
     return [(i * 10, i * 10) for i in range(10)]  # Simple mock waypoints
 
 
 @pytest.fixture
 def game_instance(monkeypatch):
-    """Fixture to create a game instance for testing without pygame initialization"""
+    """
+    Fixture to create a Game instance with pygame and track loading mocked.
+
+    Mocks:
+        - Track class replaced by MockTrack
+        - load_waypoints_from_csv returns predictable waypoints
+        - rounds_config is overridden to two simple rounds
+
+    Returns:
+        Game: A Game object ready for testing without real pygame.
+    """
     # Mock Track and waypoints loading
     monkeypatch.setattr("main.Track", MockTrack)
     monkeypatch.setattr(
@@ -133,6 +156,10 @@ def test_balloon_spawning(game_instance):
 
     # Mock balloon classes
     class MockBalloon:
+        """
+        A mock balloon that stores waypoints.
+        """
+
         def __init__(self, waypoints):
             self.waypoints = waypoints
 

@@ -9,9 +9,8 @@ This module contains unit tests for the Tower class, validating:
     * Selling functionality
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
-import time
+import pytest
 from towers import Tower
 
 
@@ -22,6 +21,16 @@ class TestBalloon:
     """
 
     def __init__(self, x, y, health=1, base_reward=5, current_waypoint=0):
+        """
+        Initialize a mock balloon for testing.
+
+        Args:
+            x (int): X-coordinate of balloon.
+            y (int): Y-coordinate of balloon.
+            health (int): Initial health points.
+            base_reward (int): Reward for popping.
+            current_waypoint (int): Progress index along path.
+        """
         self.x = x
         self.y = y
         self.health = health
@@ -29,6 +38,16 @@ class TestBalloon:
         self.current_waypoint = current_waypoint
 
     def take_damage(self, damage):
+        """
+        Apply damage to the balloon's health.
+
+        Args:
+            damage (int): Amount of damage to subtract from health.
+
+        Returns:
+            list or None: Empty list if health drops to zero or below (popped),
+            otherwise None.
+        """
         self.health -= damage
         return (
             None if self.health > 0 else []
@@ -163,7 +182,6 @@ def test_upgrade_increases_stats(tower_instance):
         def mock_upgrade(self):
             self.damage += 1
             self.range *= 1.1
-            return None
 
         tower_instance.upgrade = lambda: mock_upgrade(tower_instance)
 

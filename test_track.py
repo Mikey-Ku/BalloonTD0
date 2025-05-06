@@ -111,6 +111,14 @@ def test_is_valid_tower_position_with_existing_towers(sample_track):
 
     # Create a mock tower
     class MockTower:
+        """
+        A minimal mock tower object for testing.
+
+        Attributes:
+            x (int): The x-coordinate of the tower.
+            y (int): The y-coordinate of the tower.
+        """
+
         def __init__(self, x, y):
             self.x = x
             self.y = y

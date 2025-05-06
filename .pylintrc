@@ -459,8 +459,11 @@ disable=raw-checker-failed,
         useless-suppression,
         deprecated-pragma,
         use-symbolic-message-instead,
-       redefined-outer-name,
-       use-implicit-booleaness-not-comparison
+      redefined-outer-name,
+       use-implicit-booleaness-not-comparison,
+       too-few-public-methods,
+       invalid-name,
+       unused-variable
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

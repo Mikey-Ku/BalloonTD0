@@ -13,6 +13,17 @@ from user_interface import TowerPurchasingUI, TowerMenu
 
 @pytest.fixture(autouse=True)
 def pygame_setup_and_teardown():
+    """
+    Initialize and clean up the pygame environment for tests.
+
+    Yields:
+        None: Allows test code to run with pygame initialized.
+
+    Setup:
+        Calls pygame.init() to initialize all imported pygame modules.
+    Teardown:
+        Calls pygame.quit() to uninitialize all pygame modules and clean up.
+    """
     pygame.init()
     yield
     pygame.quit()
@@ -51,6 +62,12 @@ def test_tower_purchasing_ui_ignores_click_outside():
     triggered = {"called": False}
 
     def callback():
+        """
+        Mark the callback as invoked by updating the triggered flag.
+
+        This function sets triggered["called"] to True in the enclosing scope,
+        indicating that the callback has been executed.
+        """
         triggered["called"] = True
 
     button = TowerPurchasingUI((50, 50, 100, 40), "Test", callback, 100)
