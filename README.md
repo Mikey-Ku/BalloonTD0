@@ -84,7 +84,7 @@ python main.py
 
 ## Code Style
 
-- **Formatting**: [Black](https://github.com/psf/black) (80-character line width)
+- **Formatting**: [Black](https://github.com/psf/black) (100-character line width)
 - **Linting**: [Pylint](https://pylint.org/) with Pygame false-positive suppression
 
 ## License & Acknowledgements

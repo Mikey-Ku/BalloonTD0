@@ -44,7 +44,7 @@ class Game:
         last_spawn_time (int): Timestamp of the last spawn event.
         next_balloon_time (int): Scheduled time for next balloon spawn.
         current_wave (int): Current wave within a round.
-        ui (GameUI): User interface controller instance.
+        u_i (GameUI): User interface controller instance.
         font (pygame.font.Font): Font for in-game text.
         end_font (pygame.font.Font): Font for end-game messages.
         passive_income_amount (int): Money gained per round completion.
@@ -97,7 +97,7 @@ class Game:
         self.last_spawn_time = 0
         self.next_balloon_time = 0  # Track exact spawn timing
         self.current_wave = 1
-        self.ui = GameUI(self)
+        self.u_i = GameUI(self)
         self.font = pygame.font.SysFont(None, 36)
         self.end_font = pygame.font.SysFont(None, 72)
         self.round_started = False
@@ -128,16 +128,16 @@ class Game:
 
         # ——— outline + draw title ———
         title_text = "Balloon TD"
-        cx = self.screen.get_width() // 2
-        cy = 100
+        c_x = self.screen.get_width() // 2
+        c_y = 100
         # 1px black outline in each direction
-        for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
+        for o_x, o_y in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
             outline = self.end_font.render(title_text, True, (0, 0, 0))
-            outline_rect = outline.get_rect(center=(cx + ox, cy + oy))
+            outline_rect = outline.get_rect(center=(c_x + o_x, c_y + o_y))
             self.screen.blit(outline, outline_rect)
         # white text on top
         title_surf = self.end_font.render(title_text, True, (255, 255, 255))
-        title_rect = title_surf.get_rect(center=(cx, cy))
+        title_rect = title_surf.get_rect(center=(c_x, c_y))
         self.screen.blit(title_surf, title_rect)
 
         # ——— Play button ———
@@ -191,7 +191,7 @@ class Game:
         )  # 4px border
 
         back_txt = "Back"
-        bx, by = (
+        b_x, b_y = (
             (self.back_button.centerx, self.back_button.centery)
             if hasattr(self.back_button, "centerx")
             else (0, 0)
@@ -201,12 +201,12 @@ class Game:
             for dy in range(-thickness, thickness + 1):
                 if dx == 0 and dy == 0:
                     continue
-                ol = self.font.render(back_txt, True, (0, 0, 0))
-                r = ol.get_rect(center=(bx + dx, by + dy))
-                self.screen.blit(ol, r)
+                o_l = self.font.render(back_txt, True, (0, 0, 0))
+                r = o_l.get_rect(center=(b_x + dx, b_y + dy))
+                self.screen.blit(o_l, r)
         # white Back text
         back_surf = self.font.render(back_txt, True, (255, 255, 255))
-        back_rect = back_surf.get_rect(center=(bx, by))
+        back_rect = back_surf.get_rect(center=(b_x, b_y))
         self.screen.blit(back_surf, back_rect)
 
     def toggle_speed(self):
@@ -225,41 +225,41 @@ class Game:
         outline_color = (0, 0, 0)
         # Money with black outline
         money_str = f"Money: ${self.money}"
-        mx, my = 10, 10
+        m_x, m_y = 10, 10
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
                 if dx == 0 and dy == 0:
                     continue
                 surf = self.font.render(money_str, True, outline_color)
-                self.screen.blit(surf, (mx + dx, my + dy))
+                self.screen.blit(surf, (m_x + dx, m_y + dy))
         money_surf = self.font.render(money_str, True, (255, 255, 0))
-        self.screen.blit(money_surf, (mx, my))
+        self.screen.blit(money_surf, (m_x, m_y))
 
         # Lives with black outline
         lives_str = f"Lives: {self.lives}"
-        lx, ly = 10, 50
+        l_x, l_y = 10, 50
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
                 if dx == 0 and dy == 0:
                     continue
                 surf = self.font.render(lives_str, True, outline_color)
-                self.screen.blit(surf, (lx + dx, ly + dy))
+                self.screen.blit(surf, (l_x + dx, l_y + dy))
         lives_surf = self.font.render(lives_str, True, (255, 0, 0))
-        self.screen.blit(lives_surf, (lx, ly))
+        self.screen.blit(lives_surf, (l_x, l_y))
 
         # Round counter with black outline
         round_str = f"Round {self.current_round}"
-        rx, ry = 10, 570
+        r_x, r_y = 10, 570
         # draw outline
         for dx in (-1, 0, 1):
             for dy in (-1, 0, 1):
                 if dx == 0 and dy == 0:
                     continue
                 outline_surf = self.font.render(round_str, True, outline_color)
-                self.screen.blit(outline_surf, (rx + dx, ry + dy))
+                self.screen.blit(outline_surf, (r_x + dx, r_y + dy))
         # draw white text
         round_surf = self.font.render(round_str, True, (255, 255, 255))
-        self.screen.blit(round_surf, (rx, ry))
+        self.screen.blit(round_surf, (r_x, r_y))
 
         # Play / Speed button
         button_text = (
@@ -321,7 +321,7 @@ class Game:
                         self.__init__()
                         self.run()
                         return
-                    elif event.key == pygame.K_q:
+                    if event.key == pygame.K_q:
                         game_over = False
 
     def run(self):
@@ -335,8 +335,8 @@ class Game:
 
         while running:
             # Calculate delta time from clock
-            dt = clock.tick(60 * self.speed_multiplier)
-            self.clock_ticks += dt
+            d_t = clock.tick(60 * self.speed_multiplier)
+            self.clock_ticks += d_t
             current_time = self.clock_ticks
 
             # Event handling
@@ -391,7 +391,7 @@ class Game:
                             else:
                                 self.toggle_speed()
 
-                    self.ui.handle_event(event)
+                    self.u_i.handle_event(event)
 
             # DRAWING
             if self.state == "menu":
@@ -407,18 +407,18 @@ class Game:
                 # Spawn balloons
                 if self.round_started and self.balloons_queue:
                     if self.clock_ticks >= self.next_balloon_time:
-                        bt = self.balloons_queue.pop(0)
-                        if bt == "red":
+                        b_t = self.balloons_queue.pop(0)
+                        if b_t == "red":
                             self.balloons.append(RedBalloon(self.waypoints))
-                        elif bt == "blue":
+                        elif b_t == "blue":
                             self.balloons.append(BlueBalloon(self.waypoints))
-                        elif bt == "green":
+                        elif b_t == "green":
                             self.balloons.append(GreenBalloon(self.waypoints))
-                        elif bt == "yellow":
+                        elif b_t == "yellow":
                             self.balloons.append(YellowBalloon(self.waypoints))
-                        elif bt == "pink":
+                        elif b_t == "pink":
                             self.balloons.append(PinkBalloon(self.waypoints))
-                        elif bt == "moab":
+                        elif b_t == "moab":
                             self.balloons.append(MoabBalloon(self.waypoints))
                         adj_delay = self.spawn_delay / self.speed_multiplier
                         self.next_balloon_time = self.clock_ticks + adj_delay
@@ -451,7 +451,7 @@ class Game:
                 self.tower_sprites.draw(self.screen)
 
                 # UI & stats
-                self.ui.draw(self.screen)
+                self.u_i.draw(self.screen)
                 self.draw_stats()
 
                 # Round complete?
