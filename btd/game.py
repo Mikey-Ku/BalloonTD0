@@ -489,11 +489,33 @@ class Run:
 
     def _draw_tower(self, surface: pygame.Surface, tower: Tower,
                     shake: tuple[int, int]) -> None:
-        """Draw one tower, rotated to face its target."""
-        pos = (int(tower.x) + shake[0], int(tower.y) + shake[1])
+        """Draw one tower, rotated to face its target and kicked by recoil.
+
+        The recoil offset is driven by the tower's own fire rate (see
+        :attr:`~btd.towers.Tower.recoil_time`), so every tower's animation is
+        in step with the shots it is actually taking.
+        """
+        pos_x = tower.x + shake[0]
+        pos_y = tower.y + shake[1]
+
+        kick = tower.recoil
+        if kick:
+            radians = math.radians(tower.angle)
+            pos_x -= math.cos(radians) * kick
+            pos_y += math.sin(radians) * kick
+
+        pos = (int(pos_x), int(pos_y))
         sprite = tower_sprite(tower)
         rotated = pygame.transform.rotate(sprite, tower.angle - 90)
         surface.blit(rotated, rotated.get_rect(center=pos))
+
+        # Muzzle flash on the frame the shot leaves.
+        if tower.fire_anim > 0.75 and tower.kind.mode != FARM:
+            radians = math.radians(tower.angle)
+            tip = (int(pos_x + math.cos(radians) * 18),
+                   int(pos_y - math.sin(radians) * 18))
+            flash = int(3 + 3 * (tower.fire_anim - 0.75) * 4)
+            pygame.draw.circle(surface, (255, 246, 206), tip, flash)
 
         total = sum(tower.tiers)
         if total:

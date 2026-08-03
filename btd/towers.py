@@ -345,6 +345,8 @@ class Tower:
         self.cooldown = 0.0
         self.pops = 0
         self.cash_earned = 0
+        #: Recoil animation, 1.0 the instant a shot leaves and decaying to 0.
+        self.fire_anim = 0.0
 
         # Live stats, filled in by recompute().
         self.range = 0.0
@@ -461,6 +463,35 @@ class Tower:
         idx = (idx - 1 if backwards else idx + 1) % len(TARGETING_MODES)
         self.targeting = TARGETING_MODES[idx]
 
+    # -- animation --------------------------------------------------------
+
+    @property
+    def recoil_time(self) -> float:
+        """Seconds the firing animation takes to settle.
+
+        Derived from the tower's own fire rate rather than being a fixed
+        constant, so the animation is always finished before the next shot.
+        A Super Monkey at 9 shots/second flickers; a Sniper at 0.55 gets a
+        slow, deliberate kick. Clamped so very slow towers do not animate for
+        a whole second and very fast ones still show something.
+        """
+        if self.rate <= 0:
+            return 0.0
+        return max(0.05, min(0.22, (1.0 / self.rate) * 0.55))
+
+    @property
+    def recoil(self) -> float:
+        """Current recoil offset in pixels, opposite the facing direction."""
+        if self.fire_anim <= 0:
+            return 0.0
+        # Snappy out, eased back: the shot should feel like a kick, not a sway.
+        return 5.0 * (self.fire_anim ** 0.6)
+
+    def _advance_anim(self, dt: float) -> None:
+        """Decay the firing animation."""
+        if self.fire_anim > 0 and self.recoil_time > 0:
+            self.fire_anim = max(0.0, self.fire_anim - dt / self.recoil_time)
+
     # -- combat -----------------------------------------------------------
 
     def can_see(self, balloon: Balloon) -> bool:
@@ -504,6 +535,7 @@ class Tower:
         if self.kind.mode == FARM or self.rate <= 0:
             return [], []
 
+        self._advance_anim(dt)
         self.cooldown -= dt
         target = self.find_target(balloons)
         if target is not None:
@@ -519,12 +551,14 @@ class Tower:
                        for b in balloons if b.alive):
                 return [], []
             self.cooldown = 1.0 / self.rate
+            self.fire_anim = 1.0
             return [], [PulseEffect(self)]
 
         if target is None:
             return [], []
 
         self.cooldown = 1.0 / self.rate
+        self.fire_anim = 1.0
 
         if self.kind.mode == HITSCAN:
             return [], [

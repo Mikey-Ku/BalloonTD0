@@ -68,7 +68,7 @@ btd/
   app.py             window, state machine, main loop
   ui/                widgets, in-game HUD, full screens
 tools/               asset reporting and map export helpers
-tests/               112 unit and integration tests
+tests/               115 unit and integration tests
 ```
 
 Three decisions shape most of the code:
@@ -128,12 +128,17 @@ tooling, tests, and the soundtrack. Without those exclusions the bundle is
 
 ## Art
 
-**Most sprites are procedural placeholders.** Every sprite looks for a PNG at a
-predictable path and draws a fallback if the file is absent, so adding real art
-means saving a file to the right place — no code change.
+**Most sprites are drawn in code.** Every sprite looks for a PNG at a
+predictable path and falls back to procedural drawing if the file is absent, so
+adding real art means saving a file to the right place — no code change.
+
+Balloons are deliberately procedural for now: all eleven basic types render at
+exactly 36x36 and differ only by colour and pattern, which is what keeps a
+mixed stack looking like one set. `USE_BALLOON_ART` in `btd/config.py` switches
+them over once a complete set exists.
 
 See [ASSETS.md](ASSETS.md) for every slot, its expected size, and the
-orientation rules (towers must face up; MOAB-class balloons must face right).
+orientation rules (towers face up; MOAB-class balloons face right).
 `tools/export_maps.py` exports tracing guides showing exactly where each track
 runs, so hand-drawn backgrounds line up with the real geometry.
 

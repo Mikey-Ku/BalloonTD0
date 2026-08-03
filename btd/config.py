@@ -95,24 +95,56 @@ DEFAULT_DIFFICULTY = "normal"
 
 # --- Palette -------------------------------------------------------------
 
-# A single restrained palette keeps the HUD readable over busy map art.
-INK = (18, 21, 28)
-INK_SOFT = (58, 64, 78)
-PAPER = (238, 241, 246)
-PANEL = (30, 34, 44)
-PANEL_LIGHT = (44, 50, 63)
-PANEL_EDGE = (68, 76, 94)
+# Warm wood-and-leaf palette, chosen to sit with the bright cartoon map art
+# rather than against it. The previous dark slate scheme read as a dashboard
+# bolted onto a children's game.
+#
+# Panels are carved wood, content sits on cream, and the accents are pulled
+# straight out of the map: leaf green, sun yellow, berry red.
 
-ACCENT = (86, 176, 255)
-ACCENT_DIM = (48, 104, 154)
-MONEY = (255, 205, 74)
-LIVES = (255, 96, 104)
-GOOD = (108, 214, 138)
-BAD = (240, 92, 92)
-MUTED = (140, 149, 168)
+INK = (62, 41, 26)          # dark brown, primary text on cream
+INK_SOFT = (122, 94, 70)    # secondary text on cream
+PAPER = (252, 245, 226)     # cream panel fill
+PAPER_DIM = (232, 218, 190) # cream, pressed or inactive
+
+WOOD_DARK = (74, 48, 30)    # sidebar backdrop
+WOOD = (112, 74, 44)        # panel frames
+WOOD_LIGHT = (150, 102, 62) # raised edges and hover
+
+LEAF = (104, 182, 72)       # primary accent
+LEAF_DARK = (62, 132, 58)
+LEAF_LIGHT = (156, 214, 108)
+
+SUN = (255, 196, 54)        # money
+BERRY = (226, 76, 72)       # lives, danger
+SKY = (104, 186, 226)       # secondary accent
+
+# Semantic aliases used across the UI.
+PANEL = PAPER
+PANEL_LIGHT = (255, 252, 240)
+PANEL_EDGE = WOOD
+ACCENT = LEAF
+ACCENT_DIM = LEAF_DARK
+MONEY = (206, 142, 22)      # readable on cream, unlike pure SUN
+LIVES = (198, 54, 52)
+GOOD = LEAF_DARK
+BAD = (196, 56, 52)
+MUTED = INK_SOFT
 
 RANGE_OK = (110, 230, 150)
 RANGE_BAD = (245, 100, 100)
+
+# --- Balloons ------------------------------------------------------------
+
+#: Every non-MOAB balloon is drawn at this radius, so a stack of mixed types
+#: reads as one consistent set rather than as art from several sources.
+BALLOON_RADIUS = 18
+
+#: When False, balloons are always drawn procedurally, which guarantees a
+#: uniform silhouette and size across the whole ladder. Flip to True once a
+#: complete, consistently sized balloon set exists in ``balloon_images/``.
+#: See ASSETS.md.
+USE_BALLOON_ART = False
 
 # --- Audio ---------------------------------------------------------------
 

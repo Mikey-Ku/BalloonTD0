@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pygame  # noqa: E402
 
 from btd import assets, balloons, game, maps  # noqa: E402
-from btd.config import MAP_H, MAP_W  # noqa: E402
+from btd.config import MAP_H, MAP_W, USE_BALLOON_ART  # noqa: E402
 from btd.towers import KINDS as TOWER_KINDS  # noqa: E402
 from btd.towers import TOWER_ORDER  # noqa: E402
 
@@ -42,8 +42,11 @@ def collect() -> list[tuple[str, str, str, str, bool]]:
         candidates = balloons.art_candidates(name)
         found = next((c for c in candidates if assets.exists(c)), None)
         size = kind.radius * 2
+        # With USE_BALLOON_ART off, a present file is still not being used, so
+        # report it as unused rather than as satisfied.
+        in_use = found is not None and USE_BALLOON_ART
         rows.append(("Balloon", name, found or candidates[0],
-                     f"{size}x{size}", found is not None))
+                     f"{size}x{size}", in_use))
 
     for key in TOWER_ORDER:
         candidates = game.tower_art_candidates(key)
@@ -96,8 +99,13 @@ def main() -> None:
             print(f"  [{mark}] {name:<{width}} {size:>9}  {target}")
 
     done = sum(1 for r in rows if r[4])
-    print(f"\n{done}/{len(rows)} slots have real artwork; "
-          f"{len(rows) - done} are procedural placeholders.")
+    print(f"\n{done}/{len(rows)} slots use real artwork; "
+          f"{len(rows) - done} are drawn procedurally.")
+    if not USE_BALLOON_ART:
+        print("\nNote: USE_BALLOON_ART is off in btd/config.py, so every "
+              "balloon is\ndrawn procedurally at a uniform size regardless of "
+              "any file present.\nTurn it on once a full, consistently sized "
+              "set exists.")
     pygame.quit()
 
 

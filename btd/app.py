@@ -103,8 +103,10 @@ class App:
             base = pygame.transform.smoothscale(base, (SCREEN_W, SCREEN_H))
 
         backdrop = maps.blurred(base.convert(), passes=2)
+        # Warm brown wash rather than a cold slate one, so the menus read as
+        # part of the same jungle as the map instead of an overlay on top.
         shade = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
-        shade.fill((10, 13, 20, 165))
+        shade.fill((58, 36, 20, 140))
         backdrop.blit(shade, (0, 0))
         self._backdrop = backdrop
         return backdrop

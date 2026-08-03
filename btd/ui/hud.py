@@ -18,15 +18,16 @@ import pygame
 
 from ..balloons import ENERGY, EXPLOSIVE, SHARP
 from ..config import (
-    ACCENT, BAD, GOOD, LIVES, MAP_H, MAP_W, MONEY, MUTED, PANEL, PANEL_EDGE,
-    PAPER, RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W,
+    BAD, BERRY, INK, INK_SOFT, LEAF_DARK, LIVES, MAP_H, MAP_W, MONEY, PAPER,
+    RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W, SUN, WOOD_DARK,
 )
 from ..game import Run, tower_sprite
 from ..towers import FARM, PULSE, Tower
 from ..towers import KINDS as TOWER_KINDS
 from ..towers import TOWER_ORDER
 from .widgets import (
-    Button, IconButton, CENTER, RIGHT, draw_text, panel, progress_bar, tooltip,
+    Button, IconButton, CENTER, RIGHT, draw_text, panel, progress_bar,
+    raised_panel, tooltip, wood_backdrop,
 )
 
 SIDEBAR_X = MAP_W
@@ -81,19 +82,28 @@ class Hud:
                        size=15, draw_label=False)
             )
 
+        # All four run controls share the bottom row. The menu button used to
+        # sit in the top-right corner, where it covered the lives counter.
         bottom = SCREEN_H - 60
+        icon_w, gap = 46, 6
+        usable = SIDEBAR_W - PAD * 2
+        start_w = usable - icon_w * 3 - gap * 3
+        x = SIDEBAR_X + PAD
+
         self.start_button = Button(
-            (SIDEBAR_X + PAD, bottom, SIDEBAR_W - PAD * 2 - 108, 48),
-            "Start Round", "start", size=19,
+            (x, bottom, start_w, 48), "Start Round", "start", size=17
         )
+        x += start_w + gap
         self.speed_button = IconButton(
-            (SIDEBAR_X + SIDEBAR_W - PAD - 98, bottom, 46, 48), "1x", "speed", size=17
+            (x, bottom, icon_w, 48), "1x", "speed", size=17
         )
+        x += icon_w + gap
         self.pause_button = IconButton(
-            (SIDEBAR_X + SIDEBAR_W - PAD - 46, bottom, 46, 48), "II", "pause", size=17
+            (x, bottom, icon_w, 48), "Pause", "pause", glyph="pause", size=17
         )
+        x += icon_w + gap
         self.menu_button = IconButton(
-            (SIDEBAR_X + SIDEBAR_W - PAD - 30, 12, 30, 26), "=", "menu", size=16
+            (x, bottom, icon_w, 48), "Menu", "menu", glyph="menu", size=17
         )
         self.control_buttons = [
             self.start_button, self.speed_button, self.pause_button,
@@ -168,7 +178,7 @@ class Hud:
         )
         self.start_button.enabled = not self.run.round_active
         self.speed_button.label = f"{self.run.speed}x"
-        self.pause_button.label = "▶" if self.run.paused else "II"
+        self.pause_button.glyph = "play" if self.run.paused else "pause"
 
         for button in self.control_buttons + self.panel_buttons:
             button.update_hover(mouse)
@@ -350,8 +360,7 @@ class Hud:
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the whole sidebar."""
         rect = pygame.Rect(SIDEBAR_X, 0, SIDEBAR_W, SCREEN_H)
-        pygame.draw.rect(surface, (22, 25, 33), rect)
-        pygame.draw.line(surface, PANEL_EDGE, (SIDEBAR_X, 0), (SIDEBAR_X, SCREEN_H))
+        wood_backdrop(surface, rect)
 
         self._draw_stats(surface)
         if self.selected is not None:
@@ -363,37 +372,40 @@ class Hud:
             widget.draw(surface)
 
         if self.run.auto_start:
-            draw_text(surface, "AUTO", (SIDEBAR_X + PAD, SCREEN_H - 76), 13, GOOD)
+            draw_text(surface, "AUTO", (SIDEBAR_X + PAD, SCREEN_H - 78), 13,
+                      SUN, bold=True)
 
         self._draw_hover_tooltip(surface)
 
     def _draw_stats(self, surface: pygame.Surface) -> None:
         """Draw money, lives, round number, and round progress."""
         run = self.run
-        draw_text(surface, f"${run.money:,}", (SIDEBAR_X + PAD, 10), 26, MONEY,
-                  bold=True)
-        draw_text(surface, f"{run.lives}", (SIDEBAR_X + SIDEBAR_W - PAD - 36, 10),
-                  26, LIVES, bold=True, align=RIGHT)
+        card = pygame.Rect(SIDEBAR_X + PAD, 8, SIDEBAR_W - PAD * 2, 94)
+        raised_panel(surface, card)
 
-        lives_bar = pygame.Rect(SIDEBAR_X + PAD, 44, SIDEBAR_W - PAD * 2, 5)
+        draw_text(surface, f"${run.money:,}", (card.x + 12, card.y + 8), 26,
+                  MONEY, bold=True)
+        draw_text(surface, f"{run.lives}", (card.right - 12, card.y + 8), 26,
+                  LIVES, bold=True, align=RIGHT)
+
+        lives_bar = pygame.Rect(card.x + 12, card.y + 40, card.width - 24, 7)
         progress_bar(surface, lives_bar, run.lives / max(1, run.max_lives),
-                     fill=LIVES)
+                     fill=BERRY)
 
         draw_text(surface, f"Round {run.round_number} / {run.max_rounds}",
-                  (SIDEBAR_X + PAD, 56), 16, PAPER, bold=True)
-
-        wave = run.wave
-        draw_text(surface, wave.describe()[:44],
-                  (SIDEBAR_X + PAD, 76), 13, MUTED)
+                  (card.x + 12, card.y + 52), 16, INK, bold=True)
+        draw_text(surface, run.wave.describe()[:42],
+                  (card.x + 12, card.y + 71), 13, INK_SOFT)
 
         if run.round_active:
-            bar = pygame.Rect(SIDEBAR_X + PAD, 94, SIDEBAR_W - PAD * 2, 4)
-            progress_bar(surface, bar, run.round_progress, fill=ACCENT)
+            bar = pygame.Rect(card.x + 12, card.bottom - 9, card.width - 24, 5)
+            progress_bar(surface, bar, run.round_progress)
 
         if self.message_timer > 0:
-            draw_text(surface, self.message,
-                      (SIDEBAR_X + SIDEBAR_W // 2, 94), 15, BAD,
-                      bold=True, align=CENTER)
+            banner = pygame.Rect(SIDEBAR_X + PAD, 106, SIDEBAR_W - PAD * 2, 24)
+            panel(surface, banner, BERRY, WOOD_DARK, radius=6, width=2)
+            draw_text(surface, self.message, (banner.centerx, banner.y + 4), 15,
+                      PAPER, bold=True, align=CENTER)
 
     def _draw_shop(self, surface: pygame.Surface) -> None:
         """Draw the tower shop grid and details for the hovered entry."""
@@ -401,41 +413,43 @@ class Hud:
             kind = TOWER_KINDS[key]
             cost = self.run.tower_cost(key)
             widget.draw(surface)
+            face = widget.body_rect()
 
-            icon = tower_sprite_for_kind(key)
-            icon = pygame.transform.smoothscale(icon, (26, 26))
+            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (28, 28))
             if not widget.enabled:
                 icon = icon.copy()
-                icon.set_alpha(90)
-            surface.blit(icon, (widget.rect.x + 7, widget.rect.y + 5))
+                icon.set_alpha(100)
+            surface.blit(icon, (face.x + 8, face.y + 13))
 
-            colour = PAPER if widget.enabled else (98, 104, 120)
-            draw_text(surface, kind.label, (widget.rect.x + 38, widget.rect.y + 7),
-                      14, colour, bold=True)
-            draw_text(surface, f"${cost:,}",
-                      (widget.rect.x + 38, widget.rect.y + 26), 14,
-                      MONEY if widget.enabled else (110, 100, 70))
+            _, _, text_colour = widget.palette()
+            draw_text(surface, kind.label, (face.x + 42, face.y + 8), 14,
+                      text_colour, bold=True)
+            draw_text(surface, f"${cost:,}", (face.x + 42, face.y + 28), 14,
+                      MONEY if widget.enabled else text_colour)
 
         hint_y = 112 + ((len(TOWER_ORDER) + 1) // 2) * 62 + 8
         info = pygame.Rect(SIDEBAR_X + PAD, hint_y, SIDEBAR_W - PAD * 2,
-                           SCREEN_H - 72 - hint_y)
-        panel(surface, info, PANEL, PANEL_EDGE)
+                           SCREEN_H - 74 - hint_y)
+        raised_panel(surface, info)
 
         key = self.hover_shop or self.shop_selection
         if key is None:
+            draw_text(surface, "Build a defence",
+                      (info.x + 12, info.y + 10), 16, INK, bold=True)
             lines = [
-                "Click a tower, then click the map.",
+                "Pick a tower, then click the map.",
                 "",
-                "1-7  select tower       SPACE  start round",
-                "F  fast-forward         P  pause",
-                "A  auto-start rounds    ESC  cancel",
+                "1-7   select tower",
+                "SPACE  start round",
+                "F  fast-forward      P  pause",
+                "A  auto-start        ESC  cancel",
                 "",
-                "Select a placed tower for upgrades,",
+                "Click a placed tower for upgrades,",
                 "targeting, and its sell price.",
             ]
             for i, line in enumerate(lines):
-                draw_text(surface, line, (info.x + 10, info.y + 10 + i * 17),
-                          13, MUTED if i else PAPER)
+                draw_text(surface, line, (info.x + 12, info.y + 34 + i * 17),
+                          13, INK_SOFT)
             return
 
         self._draw_kind_details(surface, info, key)
@@ -444,28 +458,29 @@ class Hud:
                            key: str) -> None:
         """Describe an unpurchased tower type."""
         kind = TOWER_KINDS[key]
-        draw_text(surface, kind.label, (info.x + 10, info.y + 8), 17, PAPER,
+        draw_text(surface, kind.label, (info.x + 12, info.y + 9), 17, INK,
                   bold=True)
 
-        y = info.y + 32
+        y = info.y + 33
         for line in _wrap(kind.blurb, 40):
-            draw_text(surface, line, (info.x + 10, y), 13, MUTED)
+            draw_text(surface, line, (info.x + 12, y), 13, INK_SOFT)
             y += 16
 
         y += 6
         for label, value in _kind_stats(kind):
-            draw_text(surface, label, (info.x + 10, y), 13, MUTED)
-            draw_text(surface, value, (info.right - 10, y), 13, PAPER, align=RIGHT)
+            draw_text(surface, label, (info.x + 12, y), 13, INK_SOFT)
+            draw_text(surface, value, (info.right - 12, y), 13, INK,
+                      bold=True, align=RIGHT)
             y += 17
 
-        y += 6
+        y += 8
         for path in (0, 1):
             names = " > ".join(u.name for u in kind.paths[path])
-            draw_text(surface, f"Path {path + 1}", (info.x + 10, y), 12, ACCENT,
-                      bold=True)
+            draw_text(surface, f"Path {path + 1}", (info.x + 12, y), 12,
+                      LEAF_DARK, bold=True)
             y += 15
             for line in _wrap(names, 42):
-                draw_text(surface, line, (info.x + 10, y), 12, MUTED)
+                draw_text(surface, line, (info.x + 12, y), 12, INK_SOFT)
                 y += 14
             y += 4
 
@@ -473,24 +488,25 @@ class Hud:
         """Draw the inspector for the currently selected tower."""
         tower = self.selected
         top = pygame.Rect(SIDEBAR_X + PAD, 112, SIDEBAR_W - PAD * 2, 248)
-        panel(surface, top, PANEL, PANEL_EDGE)
+        raised_panel(surface, top)
 
-        icon = pygame.transform.smoothscale(tower_sprite(tower), (34, 34))
-        surface.blit(icon, (top.x + 10, top.y + 8))
-        draw_text(surface, tower.kind.label, (top.x + 52, top.y + 8), 17, PAPER,
+        icon = pygame.transform.smoothscale(tower_sprite(tower), (36, 36))
+        surface.blit(icon, (top.x + 11, top.y + 9))
+        draw_text(surface, tower.kind.label, (top.x + 55, top.y + 9), 17, INK,
                   bold=True)
-        draw_text(surface, f"Tier {tower.tier_label}", (top.x + 52, top.y + 28),
-                  13, ACCENT)
+        draw_text(surface, f"Tier {tower.tier_label}", (top.x + 55, top.y + 29),
+                  13, LEAF_DARK, bold=True)
 
-        y = top.y + 54
+        y = top.y + 56
         for label, value in _tower_stats(tower):
-            draw_text(surface, label, (top.x + 10, y), 13, MUTED)
-            draw_text(surface, value, (top.right - 10, y), 13, PAPER, align=RIGHT)
+            draw_text(surface, label, (top.x + 12, y), 13, INK_SOFT)
+            draw_text(surface, value, (top.right - 12, y), 13, INK,
+                      bold=True, align=RIGHT)
             y += 18
 
-        y += 4
+        y += 6
         draw_text(surface, f"Pops {tower.pops:,}   Earned ${tower.cash_earned:,}",
-                  (top.x + 10, y), 12, MUTED)
+                  (top.x + 12, y), 12, INK_SOFT)
 
         for widget in self.panel_buttons:
             widget.draw(surface)
@@ -499,15 +515,15 @@ class Hud:
             upgrade = tower.next_upgrade(path)
             if upgrade is None:
                 continue
-            rect = self.panel_buttons[path].rect
-            for i, line in enumerate(_wrap(upgrade.desc, 40)[:1]):
-                draw_text(surface, line, (rect.x + 8, rect.bottom - 16 + i * 13),
-                          11, MUTED)
+            face = self.panel_buttons[path].body_rect()
+            _, _, text_colour = self.panel_buttons[path].palette()
+            for line in _wrap(upgrade.desc, 42)[:1]:
+                draw_text(surface, line, (face.centerx, face.bottom - 17), 11,
+                          text_colour, align=CENTER)
 
-        back = pygame.Rect(SIDEBAR_X + PAD, 372 + 178, SIDEBAR_W - PAD * 2, 1)
-        pygame.draw.rect(surface, PANEL_EDGE, back)
-        draw_text(surface, "ESC to deselect  -  TAB targeting  -  U / I upgrade",
-                  (SIDEBAR_X + SIDEBAR_W // 2, 372 + 186), 12, MUTED, align=CENTER)
+        draw_text(surface, "ESC deselect  -  TAB target  -  U / I upgrade",
+                  (SIDEBAR_X + SIDEBAR_W // 2, 372 + 182), 12, PAPER,
+                  align=CENTER, shadow=True)
 
     def _draw_hover_tooltip(self, surface: pygame.Surface) -> None:
         """Show a compact tooltip when hovering a placed tower on the map."""
@@ -517,8 +533,9 @@ class Hud:
         if tower is None or tower is self.selected:
             return
 
-        lines = [(f"{tower.kind.label}  ({tower.tier_label})", PAPER)]
-        lines += [(f"{label} {value}", MUTED) for label, value in _tower_stats(tower)]
+        lines = [(f"{tower.kind.label}  ({tower.tier_label})", INK)]
+        lines += [(f"{label} {value}", INK_SOFT)
+                  for label, value in _tower_stats(tower)]
         lines.append((f"Sell ${tower.sell_value:,}", MONEY))
         tooltip(surface, lines, (self.mouse[0] + 16, self.mouse[1] + 12),
                 pygame.Rect(0, 0, MAP_W, MAP_H), width=220)
