@@ -133,3 +133,5 @@ dmypy.json
 # Balloon TD
 tools/map_export/
 .btd/
+
+tools/asset_originals/

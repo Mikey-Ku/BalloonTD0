@@ -151,17 +151,28 @@ def sound(rel_path: str) -> pygame.mixer.Sound | None:
     return result
 
 
+#: Music formats in preference order. OGG is first because it is the only one
+#: browsers reliably decode, so a build that has both plays the same track on
+#: the desktop and on the web.
+MUSIC_FORMATS = (".ogg", ".mp3", ".wav")
+
+
 def find_music() -> str | None:
     """Locate a background music track in ``soundtrack/``.
 
-    Returns the first playable file found, or ``None``. This is deliberately a
-    directory scan rather than a hardcoded filename so the track can be
-    swapped without touching code.
+    A directory scan rather than a hardcoded filename, so swapping the track
+    means dropping a file in and deleting the old one -- no code change.
+
+    Returns:
+        Path to the most preferred track present, or ``None``.
     """
     folder = path("soundtrack")
     if not os.path.isdir(folder):
         return None
-    for name in sorted(os.listdir(folder)):
-        if name.lower().endswith((".ogg", ".mp3", ".wav")):
-            return os.path.join(folder, name)
+
+    names = sorted(os.listdir(folder))
+    for extension in MUSIC_FORMATS:
+        for name in names:
+            if name.lower().endswith(extension):
+                return os.path.join(folder, name)
     return None

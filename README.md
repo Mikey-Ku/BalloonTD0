@@ -114,6 +114,16 @@ Builds with [pygbag](https://github.com/pygame-web/pygbag) into `build/web/`
 and serves it at `http://localhost:8000`. Push the contents of `build/web/` to
 a `gh-pages` branch to publish.
 
+`pygbag.ini` controls what is left out of the bundle — the docs site, dev
+tooling, tests, and the soundtrack. Without those exclusions the bundle is
+40 MB; with them it is 1.4 MB.
+
+> **Not yet verified end to end.** The bundle builds correctly and contains
+> the right files, but it has only been loaded in a sandboxed browser where
+> the pygbag runtime stalls partway through fetching its WASM wheels. Open
+> `http://localhost:8000` in a normal browser and confirm it runs before
+> publishing.
+
 ---
 
 ## Art
