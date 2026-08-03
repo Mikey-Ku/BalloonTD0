@@ -1,6 +1,7 @@
 """Integration tests for a run: waves, economy, placement, and determinism."""
 
 import os
+import tempfile
 import unittest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -13,6 +14,7 @@ from btd.config import DIFFICULTIES, MAP_H, MAP_W, TICK
 from btd.game import LOST, RUNNING, WON, BalloonIndex, Run
 from btd.balloons import KINDS as BALLOON_KINDS
 from btd.balloons import Balloon
+from btd import save as save_module
 from btd.save import SaveData
 from btd.waves import build_schedule, wave_for
 
@@ -354,6 +356,51 @@ class TestSave(unittest.TestCase):
         save.path = "/proc/definitely-not-writable/save.json"
         save.flush()  # must not raise
         self.assertFalse(save.writable)
+
+    def test_env_override_redirects_the_save_location(self):
+        """Automated runs must be able to keep off a real player's save file.
+
+        An early version of the screenshot harness wrote synthetic records
+        straight into the user's save; this is the hook that prevents it.
+        """
+        with tempfile.TemporaryDirectory() as folder:
+            previous = os.environ.get(save_module.SAVE_DIR_ENV)
+            os.environ[save_module.SAVE_DIR_ENV] = folder
+            try:
+                save = SaveData()
+                self.assertTrue(save.path.startswith(folder))
+                save.record_run("meadow", "normal", 7, 40, False)
+                self.assertTrue(os.path.isfile(save.path))
+            finally:
+                if previous is None:
+                    del os.environ[save_module.SAVE_DIR_ENV]
+                else:
+                    os.environ[save_module.SAVE_DIR_ENV] = previous
+
+    def test_round_trips_through_a_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            os.environ[save_module.SAVE_DIR_ENV] = folder
+            try:
+                first = SaveData()
+                first.record_run("spiral", "hard", 31, 900, True)
+                second = SaveData()
+                self.assertEqual(second.best_round("spiral", "hard"), 31)
+                self.assertEqual(second.get("wins"), 1)
+            finally:
+                del os.environ[save_module.SAVE_DIR_ENV]
+
+    def test_corrupt_save_file_falls_back_to_defaults(self):
+        with tempfile.TemporaryDirectory() as folder:
+            os.environ[save_module.SAVE_DIR_ENV] = folder
+            try:
+                with open(os.path.join(folder, save_module.FILENAME), "w",
+                          encoding="utf-8") as handle:
+                    handle.write("{not valid json at all")
+                save = SaveData()
+                self.assertEqual(save.get("wins"), 0)
+                self.assertEqual(save.best_round("meadow", "normal"), 0)
+            finally:
+                del os.environ[save_module.SAVE_DIR_ENV]
 
 
 if __name__ == "__main__":

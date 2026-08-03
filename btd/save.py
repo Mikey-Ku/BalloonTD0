@@ -26,12 +26,24 @@ _DEFAULTS: dict = {
 }
 
 
+#: Environment variable that redirects save data elsewhere. Set this in any
+#: automated run -- test harnesses, benchmarks, screenshot scripts -- so they
+#: cannot overwrite a real player's records the way an early version of the
+#: screenshot harness here did.
+SAVE_DIR_ENV = "BTD_SAVE_DIR"
+
+
 def _save_dir() -> str:
     """Return a writable directory for save data.
 
-    Prefers the platform's user-data location and falls back to the working
-    directory, which is what the browser build ends up using.
+    Honours :data:`SAVE_DIR_ENV` first, then the platform's user-data
+    location, and finally the working directory -- which is what the browser
+    build ends up using.
     """
+    override = os.environ.get(SAVE_DIR_ENV)
+    if override:
+        return override
+
     home = os.path.expanduser("~")
     candidates = [
         os.path.join(home, "Library", "Application Support", "BalloonTD"),
