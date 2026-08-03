@@ -1,105 +1,148 @@
-# Balloon Tower Defense
+# Balloon TD
 
-A simple version of the popular **Bloons TD** game by Ninja Kiwi, built from scratch in Python using Pygame.
+A tower defence game in Python and Pygame. Seven towers with branching upgrade
+paths, fourteen balloon types with damage-type immunities and camo/regrow/
+fortified modifiers, three maps, and endless procedurally generated rounds.
 
-## Overview
-
-In this tower defense game, you must defend your territory against waves of colorful balloons by placing and upgrading towers along a predefined path. Features include multiple tower types, tiered balloon enemies, customizable rounds, and a looping soundtrack for immersion.
-
-## Features
-
-- **Multiple Tower Types**
-
-  - **Dart Tower** (fast, low damage)
-  - **Sniper Tower** (high damage, long range)
-  - **Tac Tower** (fast, short radius)
-  - **Super Tower** (rapid-fire, extreme range)  
-    _(Defined in `towers.py`)_
-
-- **Varied Balloon Enemies**
-
-  - Red, Blue, Green, Yellow, Pink balloons with increasing health and speed
-  - **MOAB** boss that splits into smaller balloons upon destruction  
-    _(Implemented in `balloon.py`)_
-
-- **Wave-Based Gameplay**
-
-  - 20 configurable rounds with spawn delays and mixed balloon types
-  - Bonus income awarded at the end of each round  
-    _(Configured in `rounds.py`)_
-
-- **Dynamic Path & Map**
-
-  - Waypoints loaded from `equidistant_points.csv` for easy map customization
-  - Valid tower placements determined at runtime  
-    _(Logic in `track.py`)_
-
-- **Interactive UI**
-
-  - Click buttons or press **SPACE** to start rounds
-  - Toggle game speed between 1× and 2×
-  - Place, upgrade, or sell towers via on-screen controls  
-    _(See `user_interface.py`)_
-
-- **Visuals & Audio**
-
-  - Sprite assets in:
-    - `balloon_images/`
-    - `monkey_images/`
-    - `background_images/`
-  - Looping main theme in `soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3`
-
-- **Website & Documentation**
-  - Static site source (for GitHub Pages) in `docs/`
-
-## Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/olincollege/BalloonTD0.git
-   cd BalloonTD0
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Verify Assets**
-   Ensure the following asset directories and files are present:
-   - `equidistant_points.csv`
-   - `background_images/Background.webp`
-   - `balloon_images/*.png`
-   - `monkey_images/*.png`
-   - `soundtrack/SpotiDownloader.com - Main Theme - Tim Haywood.mp3`
-
-## Usage
-
-Run the game:
+Runs on the desktop, and compiles to WebAssembly so it can be played in a
+browser with no install.
 
 ```bash
+pip install -r requirements.txt
 python main.py
 ```
 
-### Controls
+---
 
-- **Start Round**: Click the **Play** button or press **SPACE**
-- **Toggle Speed**: Click **Play** during a round (switches between 1× and 2×)
-- **Place Tower**: Click a tower button, then click a valid map location
-- **Upgrade/Sell Tower**: Click an existing tower, then click **Upgrade** or **Sell**
-- **Restart/Quit**: After game over, press **R** to restart or **Q** to quit
+## Playing
 
-## Code Style
+| | |
+|---|---|
+| `1` – `7` | select a tower to place |
+| click map | place the selected tower, or inspect a placed one |
+| right click / `Esc` | cancel placement or deselect |
+| `Space` | start the next round |
+| `F` | cycle speed (1× / 2× / 3×) |
+| `P` | pause |
+| `A` | toggle auto-start between rounds |
+| `Tab` | cycle the selected tower's targeting priority |
+| `U` / `I` | buy the next upgrade on path 1 / path 2 |
+| `Delete` | sell the selected tower |
 
-- **Formatting**: [Black](https://github.com/psf/black) (100-character line width)
-- **Linting**: [Pylint](https://pylint.org/) with Pygame false-positive suppression
+You have a fixed number of lives. Every balloon that reaches the end of the
+track costs lives in proportion to how many balloons it contains, so letting a
+ceramic through hurts far more than letting a red through. Clear the final
+round to win.
 
-## License & Acknowledgements
+### Things worth knowing
 
-- Built with [Pygame](https://www.pygame.org/)
-- Original concept and map by Ninja Kiwi (Bloons TD)
-- Main theme by Tim Haywood
+- **Damage types matter.** Lead balloons ignore sharp damage, black balloons
+  ignore explosives. A defence built entirely from dart monkeys hits a wall the
+  moment leads arrive.
+- **Camo balloons** can only be targeted by towers with camo detection, which
+  several upgrade paths grant.
+- **Only one upgrade path per tower can be taken to its final tier.** The other
+  is capped one tier below, so each tower is a decision rather than a savings
+  goal.
+- **Targeting priority** (first / last / close / strong) is per-tower and
+  changes what a tower does far more than its stats suggest.
 
-Enjoy defending against the balloon onslaught!
+---
+
+## How it is put together
+
+```
+main.py              entry point; async so the same file builds for the web
+btd/
+  config.py          tunable constants: layout, economy, difficulty tables
+  path.py            arc-length parameterised track + spatial index
+  balloons.py        balloon table, modifiers, and the damage model
+  towers.py          tower table, upgrade paths, targeting
+  projectiles.py     travelling shots, pierce, splash
+  waves.py           authored rounds 1-40, procedural beyond
+  maps.py            map definitions and background rendering
+  game.py            the simulation: one run on one map
+  effects.py         particles, floating text, screen shake
+  audio.py           music plus synthesised sound effects
+  save.py            settings and records
+  app.py             window, state machine, main loop
+  ui/                widgets, in-game HUD, full screens
+tools/               asset reporting and map export helpers
+tests/               112 unit and integration tests
+```
+
+Three decisions shape most of the code:
+
+**The track is parameterised by distance, not by waypoint index.** A balloon
+stores how many pixels it has travelled and advances by `speed * dt`. Any
+speed is representable and travel is frame-rate independent. Tower placement
+queries go through a uniform grid over the path rather than scanning every
+waypoint.
+
+**There is one damage model.** A balloon has hit points; damage removes them;
+at zero it pops, pays its own reward exactly once, and is replaced by its
+children. Leftover damage punches into one child, so a big shot tears through
+a stack without the total ever exceeding what was dealt.
+
+**The simulation runs on a fixed timestep.** Real elapsed time is accumulated
+and consumed in whole 1/60 s ticks. Fast-forward runs more ticks per frame
+rather than raising the frame-rate cap, so 3× is exactly 3× and a 144 Hz
+display plays identically to a 60 Hz one. There are tests asserting that ten
+0.1 s frames produce the same state as a hundred 0.01 s frames.
+
+### Development
+
+```bash
+python -m unittest discover -s tests -t .
+```
+
+```bash
+python tools/asset_report.py
+```
+
+```bash
+python tools/export_maps.py
+```
+
+### Browser build
+
+```bash
+./build_web.sh
+```
+
+Builds with [pygbag](https://github.com/pygame-web/pygbag) into `build/web/`
+and serves it at `http://localhost:8000`. Push the contents of `build/web/` to
+a `gh-pages` branch to publish.
+
+---
+
+## Art
+
+**Most sprites are procedural placeholders.** Every sprite looks for a PNG at a
+predictable path and draws a fallback if the file is absent, so adding real art
+means saving a file to the right place — no code change.
+
+See [ASSETS.md](ASSETS.md) for every slot, its expected size, and the
+orientation rules (towers must face up; MOAB-class balloons must face right).
+`tools/export_maps.py` exports tracing guides showing exactly where each track
+runs, so hand-drawn backgrounds line up with the real geometry.
+
+`python tools/asset_report.py` prints what is still missing.
+
+---
+
+## Credits
+
+This started as a team project at Olin College by **Hong Zhang**,
+**Mikey Ku**, and **Jackson Gamache** — the original is at
+[olincollege/BalloonTD0](https://github.com/olincollege/BalloonTD0), and its
+README is kept here as [README_original.md](README_original.md). That version's
+map art, balloon and monkey sprites, and overall shape carry over. The engine,
+tower and balloon systems, waves, UI, and tooling were rewritten afterwards.
+
+Inspired by Bloons TD by Ninja Kiwi. Built with [Pygame](https://www.pygame.org/).
+
+> **Note:** the file in `soundtrack/` is a Spotify rip inherited from the
+> original project and should be replaced with a licensed or public-domain
+> track before this repository is made public. Music loading is a directory
+> scan, so swapping the file is all that is required.

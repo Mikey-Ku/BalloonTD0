@@ -1,0 +1,397 @@
+"""
+Full-screen interfaces: title, map select, settings, pause, and results.
+
+The original game had a title screen, a static instructions page, and a
+game-over screen that restarted by constructing a new ``Game`` inside the
+running one's call stack. Screens here are plain objects that return an action
+string; the app owns all state transitions, so nothing recurses.
+"""
+
+from __future__ import annotations
+
+import pygame
+
+from .. import maps
+from ..config import (
+    ACCENT, BAD, DIFFICULTIES, GOOD, MONEY, MUTED, PANEL, PANEL_EDGE, PAPER,
+    SCREEN_H, SCREEN_W,
+)
+from .widgets import Button, CENTER, Slider, draw_text, panel
+
+
+class Screen:
+    """Base class for a full-screen interface.
+
+    Subclasses populate ``buttons`` and override :meth:`draw_content`.
+    """
+
+    title = ""
+    subtitle = ""
+
+    def __init__(self, app):
+        self.app = app
+        self.buttons: list[Button] = []
+        self.sliders: list[Slider] = []
+
+    def update(self, dt: float, mouse: tuple[int, int]) -> None:
+        """Refresh hover states."""
+        for button in self.buttons:
+            button.update_hover(mouse)
+
+    def handle_click(self, pos: tuple[int, int]) -> str | None:
+        """Return the action of whichever control was clicked."""
+        for slider in self.sliders:
+            if slider.hit(pos):
+                return f"slide:{slider.action}"
+        for button in self.buttons:
+            action = button.hit(pos)
+            if action:
+                return action
+        return None
+
+    def handle_drag(self, pos: tuple[int, int]) -> str | None:
+        """Continue a slider drag, if one is active."""
+        for slider in self.sliders:
+            if slider.dragging:
+                slider.set_from_x(pos[0])
+                return f"slide:{slider.action}"
+        return None
+
+    def release(self) -> None:
+        """End any slider drag."""
+        for slider in self.sliders:
+            slider.release()
+
+    def handle_key(self, key: int) -> str | None:
+        """Handle a key press. Escape backs out by default."""
+        if key == pygame.K_ESCAPE:
+            return "back"
+        return None
+
+    def draw(self, surface: pygame.Surface) -> None:
+        """Draw the backdrop, heading, and the subclass's content."""
+        self.app.draw_backdrop(surface)
+        if self.title:
+            draw_text(surface, self.title, (SCREEN_W // 2, 58), 52, PAPER,
+                      bold=True, align=CENTER, shadow=True)
+        if self.subtitle:
+            draw_text(surface, self.subtitle, (SCREEN_W // 2, 116), 18, MUTED,
+                      align=CENTER)
+        self.draw_content(surface)
+        for slider in self.sliders:
+            slider.draw(surface)
+        for button in self.buttons:
+            button.draw(surface)
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Draw anything beyond the heading and controls."""
+
+
+class MenuScreen(Screen):
+    """Title screen."""
+
+    title = "BALLOON TD"
+    subtitle = "Place monkeys. Pop balloons. Do not let them through."
+
+    def __init__(self, app):
+        super().__init__(app)
+        mid = SCREEN_W // 2
+        self.buttons = [
+            Button((mid - 130, 200, 260, 54), "Play", "play", size=22),
+            Button((mid - 130, 266, 260, 48), "Settings", "settings", size=18),
+            Button((mid - 130, 322, 260, 48), "Quit", "quit", size=18),
+        ]
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Show lifetime records under the buttons."""
+        save = self.app.save
+        best = save.data.get("best", {})
+        summary = [
+            f"Runs won: {save.get('wins')}",
+            f"Balloons popped: {save.get('total_pops'):,}",
+        ]
+        if best:
+            top = max(best.items(), key=lambda kv: kv[1])
+            map_key, difficulty = top[0].split(":")
+            name = maps.MAPS.get(map_key)
+            summary.append(
+                f"Best: round {top[1]} on "
+                f"{name.name if name else map_key} ({difficulty})"
+            )
+
+        box = pygame.Rect(SCREEN_W // 2 - 200, 400, 400, 26 + 22 * len(summary))
+        panel(surface, box, PANEL, PANEL_EDGE)
+        for i, line in enumerate(summary):
+            draw_text(surface, line, (box.centerx, box.y + 12 + i * 22), 15,
+                      MUTED, align=CENTER)
+
+        draw_text(surface,
+                  "Originally an Olin College team project by Hong Zhang, "
+                  "Mikey Ku, and Jackson Gamache",
+                  (SCREEN_W // 2, SCREEN_H - 34), 13, (110, 116, 132),
+                  align=CENTER)
+
+    def handle_key(self, key: int) -> str | None:
+        """Enter starts, Escape quits."""
+        if key in (pygame.K_RETURN, pygame.K_SPACE):
+            return "play"
+        if key == pygame.K_ESCAPE:
+            return "quit"
+        return None
+
+
+class MapSelectScreen(Screen):
+    """Map and difficulty picker."""
+
+    title = "Choose a Map"
+
+    #: Thumbnails are rendered once and reused.
+    _thumbs: dict[str, pygame.Surface] = {}
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.map_key = maps.MAP_ORDER[0]
+        self.difficulty = "normal"
+        self.card_rects: dict[str, pygame.Rect] = {}
+        self._build()
+
+    def _build(self) -> None:
+        """Lay out the map cards, difficulty buttons, and actions."""
+        self.buttons = []
+        card_w, card_h = 280, 224
+        gap = 24
+        total = len(maps.MAP_ORDER) * card_w + (len(maps.MAP_ORDER) - 1) * gap
+        start_x = (SCREEN_W - total) // 2
+
+        self.card_rects = {}
+        for i, key in enumerate(maps.MAP_ORDER):
+            self.card_rects[key] = pygame.Rect(
+                start_x + i * (card_w + gap), 150, card_w, card_h
+            )
+
+        diff_w = 150
+        diff_total = len(DIFFICULTIES) * diff_w + (len(DIFFICULTIES) - 1) * 12
+        diff_x = (SCREEN_W - diff_total) // 2
+        for i, key in enumerate(DIFFICULTIES):
+            button = Button(
+                (diff_x + i * (diff_w + 12), 424, diff_w, 46),
+                DIFFICULTIES[key]["label"], f"diff:{key}", size=17,
+            )
+            button.selected = key == self.difficulty
+            self.buttons.append(button)
+
+        self.buttons.append(
+            Button((SCREEN_W // 2 - 150, 552, 300, 54), "Start Run", "start", size=22)
+        )
+        self.buttons.append(
+            Button((SCREEN_W // 2 - 150, 618, 300, 42), "Back", "back", size=17)
+        )
+
+    def thumb(self, key: str) -> pygame.Surface:
+        """Return a small preview of a map, rendering it on first use."""
+        cached = self._thumbs.get(key)
+        if cached is not None:
+            return cached
+        map_def = maps.MAPS[key]
+        path = maps.build_path(map_def)
+        full = maps.build_background(map_def, path)
+        thumb = pygame.transform.smoothscale(full, (264, 152))
+        self._thumbs[key] = thumb
+        return thumb
+
+    def handle_click(self, pos: tuple[int, int]) -> str | None:
+        """Select a card, or fall through to the buttons."""
+        for key, rect in self.card_rects.items():
+            if rect.collidepoint(pos):
+                self.map_key = key
+                return None
+
+        action = super().handle_click(pos)
+        if action and action.startswith("diff:"):
+            self.difficulty = action.split(":")[1]
+            for button in self.buttons:
+                if button.action.startswith("diff:"):
+                    button.selected = button.action == f"diff:{self.difficulty}"
+            return None
+        if action == "start":
+            return f"start:{self.map_key}:{self.difficulty}"
+        return action
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Draw the map cards and the selected difficulty's rules."""
+        for key, rect in self.card_rects.items():
+            map_def = maps.MAPS[key]
+            chosen = key == self.map_key
+            panel(surface, rect, PANEL, ACCENT if chosen else PANEL_EDGE,
+                  radius=10, width=3 if chosen else 1)
+            surface.blit(self.thumb(key), (rect.x + 8, rect.y + 8))
+            draw_text(surface, map_def.name, (rect.centerx, rect.y + 168), 18,
+                      PAPER, bold=True, align=CENTER)
+            best = self.app.save.best_round(key, self.difficulty)
+            label = f"{map_def.difficulty}   -   best round {best}" if best \
+                else map_def.difficulty
+            draw_text(surface, label, (rect.centerx, rect.y + 192), 13, MUTED,
+                      align=CENTER)
+
+        rules = DIFFICULTIES[self.difficulty]
+        summary = (
+            f"${rules['money']:,} starting cash   -   {rules['lives']} lives   -   "
+            f"{rules['rounds']} rounds   -   "
+            f"balloon health x{rules['hp_scale']:.2f}"
+        )
+        draw_text(surface, summary, (SCREEN_W // 2, 490), 15, MUTED, align=CENTER)
+
+
+class SettingsScreen(Screen):
+    """Audio and display options."""
+
+    title = "Settings"
+
+    def __init__(self, app):
+        super().__init__(app)
+        mid = SCREEN_W // 2
+        self.sliders = [
+            Slider((mid - 130, 216, 260, 8), app.save.get("music_volume"), "music"),
+            Slider((mid - 130, 300, 260, 8), app.save.get("sfx_volume"), "sfx"),
+        ]
+        self.buttons = [
+            Button((mid - 130, 350, 260, 46), "", "toggle_ranges", size=17),
+            Button((mid - 130, 470, 260, 46), "Back", "back", size=18),
+        ]
+        self._sync()
+
+    def _sync(self) -> None:
+        """Refresh the toggle label from saved state."""
+        on = self.app.save.get("show_ranges")
+        self.buttons[0].label = f"Show tower ranges: {'On' if on else 'Off'}"
+
+    def handle_click(self, pos: tuple[int, int]) -> str | None:
+        """Handle the toggle in place; everything else bubbles up."""
+        action = super().handle_click(pos)
+        if action == "toggle_ranges":
+            self.app.save.set("show_ranges", not self.app.save.get("show_ranges"))
+            self._sync()
+            return None
+        return action
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Label the sliders with their current percentages."""
+        mid = SCREEN_W // 2
+        draw_text(surface, f"Music  {int(self.sliders[0].value * 100)}%",
+                  (mid, 186), 17, PAPER, align=CENTER)
+        draw_text(surface, f"Sound effects  {int(self.sliders[1].value * 100)}%",
+                  (mid, 270), 17, PAPER, align=CENTER)
+        if not self.app.save.writable:
+            draw_text(surface, "Settings cannot be saved in this environment.",
+                      (mid, 420), 14, MUTED, align=CENTER)
+
+
+class PauseScreen(Screen):
+    """Modal shown over a paused run."""
+
+    title = "Paused"
+
+    def __init__(self, app):
+        super().__init__(app)
+        mid = SCREEN_W // 2
+        self.buttons = [
+            Button((mid - 130, 210, 260, 50), "Resume", "resume", size=20),
+            Button((mid - 130, 272, 260, 46), "Restart Run", "restart", size=17),
+            Button((mid - 130, 328, 260, 46), "Settings", "settings", size=17),
+            Button((mid - 130, 384, 260, 46), "Main Menu", "menu", size=17),
+        ]
+
+    def handle_key(self, key: int) -> str | None:
+        """Escape resumes."""
+        if key in (pygame.K_ESCAPE, pygame.K_p):
+            return "resume"
+        return None
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Show a snapshot of the run in progress."""
+        run = self.app.run
+        if run is None:
+            return
+        lines = [
+            f"{run.map_def.name}  -  {DIFFICULTIES[run.difficulty]['label']}",
+            f"Round {run.round_number} of {run.max_rounds}",
+            f"${run.money:,}  -  {run.lives} lives  -  {len(run.towers)} towers",
+        ]
+        for i, line in enumerate(lines):
+            draw_text(surface, line, (SCREEN_W // 2, 452 + i * 24), 16, MUTED,
+                      align=CENTER)
+
+
+class ResultScreen(Screen):
+    """End-of-run summary."""
+
+    def __init__(self, app, won: bool, record: bool):
+        super().__init__(app)
+        self.won = won
+        self.record = record
+        self.title = "Victory" if won else "Game Over"
+        mid = SCREEN_W // 2
+        self.buttons = [
+            Button((mid - 130, 470, 260, 50), "Play Again", "restart", size=20),
+            Button((mid - 130, 532, 260, 46), "Choose Map", "play", size=17),
+            Button((mid - 130, 588, 260, 46), "Main Menu", "menu", size=17),
+        ]
+
+    def handle_key(self, key: int) -> str | None:
+        """Enter replays, Escape returns to the menu."""
+        if key == pygame.K_RETURN:
+            return "restart"
+        if key == pygame.K_ESCAPE:
+            return "menu"
+        return None
+
+    def draw_content(self, surface: pygame.Surface) -> None:
+        """Show run statistics and any new record."""
+        run = self.app.run
+        if run is None:
+            return
+
+        colour = GOOD if self.won else BAD
+        headline = (
+            f"Cleared all {run.max_rounds} rounds"
+            if self.won else
+            f"Survived to round {run.round_number}"
+        )
+        draw_text(surface, headline, (SCREEN_W // 2, 138), 24, colour,
+                  bold=True, align=CENTER)
+
+        if self.record:
+            draw_text(surface, "New personal best", (SCREEN_W // 2, 172), 17,
+                      MONEY, bold=True, align=CENTER)
+
+        box = pygame.Rect(SCREEN_W // 2 - 220, 210, 440, 226)
+        panel(surface, box, PANEL, PANEL_EDGE)
+
+        rows = [
+            ("Map", run.map_def.name),
+            ("Difficulty", DIFFICULTIES[run.difficulty]["label"]),
+            ("Round reached", f"{run.round_number} / {run.max_rounds}"),
+            ("Balloons popped", f"{run.total_pops:,}"),
+            ("Money earned", f"${run.total_earned:,}"),
+            ("Towers built", str(len(run.towers))),
+            ("Lives left", f"{run.lives} / {run.max_lives}"),
+            ("Time played", _clock(run.elapsed)),
+        ]
+        for i, (label, value) in enumerate(rows):
+            y = box.y + 16 + i * 26
+            draw_text(surface, label, (box.x + 20, y), 16, MUTED)
+            draw_text(surface, value, (box.right - 20, y), 16, PAPER,
+                      align="right", bold=True)
+
+        best = run.towers and max(run.towers, key=lambda t: t.pops)
+        if best:
+            draw_text(surface,
+                      f"Top tower: {best.kind.label} ({best.tier_label}) "
+                      f"with {best.pops:,} pops",
+                      (SCREEN_W // 2, 444), 15, MUTED, align=CENTER)
+
+
+def _clock(seconds: float) -> str:
+    """Format elapsed seconds as ``m:ss``."""
+    minutes, secs = divmod(int(seconds), 60)
+    return f"{minutes}:{secs:02d}"
