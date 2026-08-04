@@ -189,6 +189,37 @@ def plank_strip(surface: pygame.Surface, rect: pygame.Rect) -> None:
                      (rect.x, rect.bottom - 2), (rect.right, rect.bottom - 2), 2)
 
 
+#: Pale highlight used on nail heads.
+PAPER_TINT = (250, 240, 216)
+
+
+def sign(surface: pygame.Surface, rect: pygame.Rect, radius: int = 14) -> None:
+    """Draw a hanging wooden sign, for headings and standalone captions.
+
+    Text over the blurred menu backdrop used to rely on a heavy outline to
+    stay legible. At small sizes the outlines of adjacent letters merge into a
+    solid dark slab, so the text looked like it had a black box behind it.
+    Putting the text on a board instead removes the need for an outline at
+    all, and matches the rest of the woodwork.
+    """
+    pygame.draw.rect(surface, mix(WOOD_SHADE, (0, 0, 0), 0.45),
+                     rect.move(0, 5), border_radius=radius)
+    pygame.draw.rect(surface, WOOD_SHADE, rect, border_radius=radius)
+
+    face = rect.inflate(-10, -10)
+    wood_fill(surface, face, WOOD_FACE, radius=max(0, radius - 5))
+    pygame.draw.rect(surface, WOOD_HILITE, face, 2,
+                     border_radius=max(0, radius - 5))
+
+    # Nail heads, so the board reads as fixed to something.
+    for n_x in (rect.x + 15, rect.right - 15):
+        for n_y in (rect.y + 15, rect.bottom - 15):
+            pygame.draw.circle(surface, mix(WOOD_SHADE, (0, 0, 0), 0.4),
+                               (n_x, n_y + 1), 4)
+            pygame.draw.circle(surface, mix(WOOD_HILITE, PAPER_TINT, 0.3),
+                               (n_x, n_y), 3)
+
+
 def round_button(surface: pygame.Surface, centre: tuple[int, int], radius: int,
                  face, dark, pressed: bool = False,
                  enabled: bool = True) -> None:

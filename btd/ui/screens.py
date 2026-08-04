@@ -11,11 +11,12 @@ from __future__ import annotations
 
 import pygame
 
-from .. import maps
+from .. import assets, maps
 from ..config import (
     ACCENT, BERRY, DIFFICULTIES, INK, INK_SOFT, LEAF_LIGHT, PAPER,
-    SCREEN_H, SCREEN_W, SUN, WOOD,
+    SCREEN_W, SUN, TEXT_GOLD, WOOD,
 )
+from . import chrome
 from .widgets import Button, CENTER, Slider, draw_text, raised_panel
 
 
@@ -68,20 +69,47 @@ class Screen:
             return "back"
         return None
 
+    #: Where the heading sign sits. Subclasses may move it.
+    title_top = 40
+
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the backdrop, heading, and the subclass's content."""
         self.app.draw_backdrop(surface)
-        if self.title:
-            draw_text(surface, self.title, (SCREEN_W // 2, 58), 52, PAPER,
-                      bold=True, align=CENTER, shadow=True)
-        if self.subtitle:
-            draw_text(surface, self.subtitle, (SCREEN_W // 2, 116), 19,
-                      PAPER, align=CENTER, shadow=True)
+        self.draw_heading(surface)
         self.draw_content(surface)
         for slider in self.sliders:
             slider.draw(surface)
         for button in self.buttons:
             button.draw(surface)
+
+    def draw_heading(self, surface: pygame.Surface) -> pygame.Rect | None:
+        """Draw the title, and subtitle if any, on a wooden sign.
+
+        Returns the sign's rect so subclasses can lay out beneath it.
+        """
+        if not self.title:
+            return None
+
+        title_size = 50
+        title = chrome.outlined_text(self.title, title_size, TEXT_GOLD,
+                                     thickness=2)
+        width = title.get_width() + 88
+        height = 100 if self.subtitle else 74
+
+        if self.subtitle:
+            sub = assets.font(18).render(self.subtitle, True, PAPER)
+            width = max(width, sub.get_width() + 72)
+
+        board = pygame.Rect(0, self.title_top, width, height)
+        board.centerx = SCREEN_W // 2
+        chrome.sign(surface, board)
+
+        surface.blit(title, title.get_rect(midtop=(board.centerx,
+                                                   board.y + 12)))
+        if self.subtitle:
+            surface.blit(sub, sub.get_rect(midtop=(board.centerx,
+                                                   board.y + 16 + title_size)))
+        return board
 
     def draw_content(self, surface: pygame.Surface) -> None:
         """Draw anything beyond the heading and controls."""
@@ -92,44 +120,19 @@ class MenuScreen(Screen):
 
     title = "BALLOON TD"
     subtitle = "Place monkeys. Pop balloons. Do not let them through."
+    title_top = 183
 
     def __init__(self, app):
         super().__init__(app)
+        # Sign plus three buttons, centred as one block rather than pinned
+        # near the top with empty space below.
         mid = SCREEN_W // 2
+        top = 348
         self.buttons = [
-            Button((mid - 130, 200, 260, 54), "Play", "play", size=22),
-            Button((mid - 130, 266, 260, 48), "Settings", "settings", size=18),
-            Button((mid - 130, 322, 260, 48), "Quit", "quit", size=18),
+            Button((mid - 150, top, 300, 58), "Play", "play", size=23),
+            Button((mid - 150, top + 74, 300, 50), "Settings", "settings", size=18),
+            Button((mid - 150, top + 138, 300, 50), "Quit", "quit", size=18),
         ]
-
-    def draw_content(self, surface: pygame.Surface) -> None:
-        """Show lifetime records under the buttons."""
-        save = self.app.save
-        best = save.data.get("best", {})
-        summary = [
-            f"Runs won: {save.get('wins')}",
-            f"Balloons popped: {save.get('total_pops'):,}",
-        ]
-        if best:
-            top = max(best.items(), key=lambda kv: kv[1])
-            map_key, difficulty = top[0].split(":")
-            name = maps.MAPS.get(map_key)
-            summary.append(
-                f"Best: round {top[1]} on "
-                f"{name.name if name else map_key} ({difficulty})"
-            )
-
-        box = pygame.Rect(SCREEN_W // 2 - 210, 400, 420, 28 + 23 * len(summary))
-        raised_panel(surface, box)
-        for i, line in enumerate(summary):
-            draw_text(surface, line, (box.centerx, box.y + 12 + i * 23), 16,
-                      INK, align=CENTER)
-
-        draw_text(surface,
-                  "Originally an Olin College team project by Hong Zhang, "
-                  "Mikey Ku, and Jackson Gamache",
-                  (SCREEN_W // 2, SCREEN_H - 36), 14, PAPER,
-                  align=CENTER, shadow=True)
 
     def handle_key(self, key: int) -> str | None:
         """Enter starts, Escape quits."""
@@ -259,8 +262,10 @@ class MapSelectScreen(Screen):
             f"{rules['rounds']} rounds   -   "
             f"balloon health x{rules['hp_scale']:.2f}"
         )
-        draw_text(surface, summary, (SCREEN_W // 2, self.rules_y), 16,
-                  PAPER, align=CENTER, shadow=True)
+        label = assets.font(16, bold=True).render(summary, True, PAPER)
+        strip = label.get_rect(midtop=(SCREEN_W // 2, self.rules_y))
+        chrome.plank_strip(surface, strip.inflate(40, 16))
+        surface.blit(label, strip)
 
 
 class SettingsScreen(Screen):
@@ -276,8 +281,8 @@ class SettingsScreen(Screen):
             Slider((mid - 130, 300, 260, 8), app.save.get("sfx_volume"), "sfx"),
         ]
         self.buttons = [
-            Button((mid - 130, 350, 260, 46), "", "toggle_ranges", size=17),
-            Button((mid - 130, 470, 260, 46), "Back", "back", size=18),
+            Button((mid - 150, 352, 300, 46), "", "toggle_ranges", size=17),
+            Button((mid - 130, 418, 260, 46), "Back", "back", size=18),
         ]
         self._sync()
 
@@ -296,15 +301,18 @@ class SettingsScreen(Screen):
         return action
 
     def draw_content(self, surface: pygame.Surface) -> None:
-        """Label the sliders with their current percentages."""
+        """Draw the panel the sliders sit on, and their current values."""
         mid = SCREEN_W // 2
+        board = pygame.Rect(mid - 210, 160, 420, 172)
+        raised_panel(surface, board)
+
         draw_text(surface, f"Music  {int(self.sliders[0].value * 100)}%",
-                  (mid, 186), 19, PAPER, align=CENTER, shadow=True)
+                  (mid, 176), 19, INK, bold=True, align=CENTER)
         draw_text(surface, f"Sound effects  {int(self.sliders[1].value * 100)}%",
-                  (mid, 270), 19, PAPER, align=CENTER, shadow=True)
+                  (mid, 260), 19, INK, bold=True, align=CENTER)
         if not self.app.save.writable:
-            draw_text(surface, "Settings cannot be saved in this environment.",
-                      (mid, 420), 15, PAPER, align=CENTER, shadow=True)
+            draw_text(surface, "Settings cannot be saved here.",
+                      (mid, 302), 15, INK_SOFT, align=CENTER)
 
 
 class PauseScreen(Screen):
@@ -338,9 +346,11 @@ class PauseScreen(Screen):
             f"Round {run.round_number} of {run.max_rounds}",
             f"${run.money:,}  -  {run.lives} lives  -  {len(run.towers)} towers",
         ]
+        board = pygame.Rect(SCREEN_W // 2 - 230, 452, 460, 26 + 26 * len(lines))
+        raised_panel(surface, board)
         for i, line in enumerate(lines):
-            draw_text(surface, line, (SCREEN_W // 2, 452 + i * 26), 17,
-                      PAPER, align=CENTER, shadow=True)
+            draw_text(surface, line, (board.centerx, board.y + 13 + i * 26), 17,
+                      INK, align=CENTER)
 
 
 class ResultScreen(Screen):
@@ -378,14 +388,16 @@ class ResultScreen(Screen):
             if self.won else
             f"Survived to round {run.round_number}"
         )
-        draw_text(surface, headline, (SCREEN_W // 2, 138), 24, colour,
-                  bold=True, align=CENTER, shadow=True)
+        banner = assets.font(22, bold=True).render(headline, True, colour)
+        rect = banner.get_rect(midtop=(SCREEN_W // 2, 134))
+        chrome.plank_strip(surface, rect.inflate(52, 18))
+        surface.blit(banner, rect)
 
         if self.record:
-            draw_text(surface, "New personal best", (SCREEN_W // 2, 172), 17,
-                      SUN, bold=True, align=CENTER, shadow=True)
+            best = chrome.outlined_text("New personal best", 17, SUN)
+            surface.blit(best, best.get_rect(midtop=(SCREEN_W // 2, 176)))
 
-        box = pygame.Rect(SCREEN_W // 2 - 220, 210, 440, 226)
+        box = pygame.Rect(SCREEN_W // 2 - 220, 208, 440, 258)
         raised_panel(surface, box)
 
         rows = [
@@ -404,13 +416,15 @@ class ResultScreen(Screen):
             draw_text(surface, value, (box.right - 20, y), 16, INK,
                       align="right", bold=True)
 
-        best = run.towers and max(run.towers, key=lambda t: t.pops)
-        if best:
+        top = run.towers and max(run.towers, key=lambda t: t.pops)
+        if top:
+            draw_text(surface, "Top tower", (box.x + 20, box.bottom - 34), 16,
+                      INK_SOFT)
             draw_text(surface,
-                      f"Top tower: {best.kind.label} ({best.tier_label}) "
-                      f"with {best.pops:,} pops",
-                      (SCREEN_W // 2, 444), 16, PAPER, align=CENTER,
-                      shadow=True)
+                      f"{top.kind.label} ({top.tier_label}) - "
+                      f"{top.pops:,} pops",
+                      (box.right - 20, box.bottom - 34), 16, INK,
+                      align="right", bold=True)
 
 
 def _clock(seconds: float) -> str:
