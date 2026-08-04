@@ -37,23 +37,41 @@ BACKUP = os.path.join(ROOT, "tools", "asset_originals")
 
 #: Directories scanned for sprite art. Map backgrounds are excluded because
 #: they are drawn at full size and must stay at the map resolution.
-SPRITE_DIRS = ("balloon_images", "monkey_images")
+#:
+#: Character art is cropped to its visible content first. The game already
+#: normalises those by content at load time, so canvas padding is thrown away
+#: regardless -- downscaling it would just spend resolution on empty pixels.
+#: One supplied logo had faint pixels spanning the full 1024px width while the
+#: subject was only 491px across, so more than half its detail was padding.
+#: Balloons are *not* cropped: they are scaled by canvas, so cropping would
+#: change how large they appear.
+SPRITE_DIRS = {"balloon_images": False, "monkey_images": True}
+
+#: Alpha below this counts as empty when cropping. Matches btd/sprites.py.
+ALPHA_FLOOR = 24
 
 
-def targets() -> list[str]:
-    """Collect every sprite file, relative to the project root."""
+def targets() -> list[tuple[str, bool]]:
+    """Collect every sprite file as ``(relative_path, crop_to_content)``."""
     found = []
-    for folder in SPRITE_DIRS:
+    for folder, crop in SPRITE_DIRS.items():
         full = os.path.join(ROOT, folder)
         if not os.path.isdir(full):
             continue
         for name in sorted(os.listdir(full)):
             if name.lower().endswith((".png", ".webp")):
-                found.append(os.path.join(folder, name))
+                found.append((os.path.join(folder, name), crop))
     return found
 
 
-def optimize(rel_path: str, max_side: int, dry_run: bool) -> tuple[int, int]:
+def content_box(img: Image.Image) -> tuple[int, int, int, int] | None:
+    """Bounding box of pixels at or above :data:`ALPHA_FLOOR`."""
+    alpha = img.getchannel("A").point(lambda v: 255 if v >= ALPHA_FLOOR else 0)
+    return alpha.getbbox()
+
+
+def optimize(rel_path: str, max_side: int, dry_run: bool,
+             crop: bool = False) -> tuple[int, int]:
     """Downscale one image if it is larger than ``max_side``.
 
     Args:
@@ -69,21 +87,34 @@ def optimize(rel_path: str, max_side: int, dry_run: bool) -> tuple[int, int]:
 
     with Image.open(full) as img:
         img = img.convert("RGBA")
+        note = ""
+
+        if crop:
+            box = content_box(img)
+            if box and (box[2] - box[0]) > 1 and (box[3] - box[1]) > 1:
+                # A little margin so smoothscale has edge pixels to work with.
+                pad = max(2, round(max(box[2] - box[0], box[3] - box[1]) * 0.03))
+                box = (max(0, box[0] - pad), max(0, box[1] - pad),
+                       min(img.width, box[2] + pad), min(img.height, box[3] + pad))
+                if (box[2] - box[0], box[3] - box[1]) != img.size:
+                    img = img.crop(box)
+                    note = " cropped"
+
         width, height = img.size
         longest = max(width, height)
 
-        if longest <= max_side:
+        if longest <= max_side and not note:
             print(f"  keep    {rel_path:<40} {width}x{height}  "
                   f"{before / 1024:7.0f} KB")
             return before, before
 
-        scale = max_side / longest
+        scale = min(1.0, max_side / longest)
         new_size = (max(1, round(width * scale)), max(1, round(height * scale)))
-        resized = img.resize(new_size, Image.LANCZOS)
+        resized = img.resize(new_size, Image.LANCZOS) if scale < 1.0 else img
 
         if dry_run:
             print(f"  WOULD   {rel_path:<40} {width}x{height} -> "
-                  f"{new_size[0]}x{new_size[1]}  {before / 1024:7.0f} KB")
+                  f"{new_size[0]}x{new_size[1]}{note}  {before / 1024:7.0f} KB")
             return before, before
 
         os.makedirs(os.path.join(BACKUP, os.path.dirname(rel_path)), exist_ok=True)
@@ -93,7 +124,7 @@ def optimize(rel_path: str, max_side: int, dry_run: bool) -> tuple[int, int]:
     after = os.path.getsize(full)
     saved = 100 * (1 - after / before) if before else 0
     print(f"  resize  {rel_path:<40} {width}x{height} -> "
-          f"{new_size[0]}x{new_size[1]}  "
+          f"{new_size[0]}x{new_size[1]}{note}  "
           f"{before / 1024:7.0f} -> {after / 1024:6.0f} KB  (-{saved:.0f}%)")
     return before, after
 
@@ -115,8 +146,8 @@ def main() -> None:
     print(f"Scanning {len(files)} sprites, target max edge {args.max}px\n")
 
     total_before = total_after = 0
-    for rel_path in files:
-        before, after = optimize(rel_path, args.max, args.dry_run)
+    for rel_path, crop in files:
+        before, after = optimize(rel_path, args.max, args.dry_run, crop)
         total_before += before
         total_after += after
 

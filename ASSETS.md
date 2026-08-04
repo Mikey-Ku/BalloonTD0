@@ -10,7 +10,7 @@ Check status at any time:
 python tools/asset_report.py
 ```
 
-Right now: **14 of 31 slots use real artwork; the other 17 are drawn in code.**
+Right now: **16 of 31 slots use real artwork; the other 15 are drawn in code.**
 
 ---
 
@@ -70,7 +70,7 @@ one file per balloon, not one per combination.
 The five old `<name>_balloon.png` files are no longer loaded. They are
 inconsistent in size and style with each other; that is what prompted this.
 
-## 2. Towers — 3 slots left
+## 2. Towers — complete
 
 Each tower can have **two** pieces of art:
 
@@ -84,21 +84,23 @@ can land one piece at a time without breaking anything.
 
 | Tower | key | logo | overhead |
 |---|---|---|---|
-| Dart Monkey | `dart` | art | **needed** |
+| Dart Monkey | `dart` | art | art |
 | Sniper Monkey | `sniper` | art | art |
 | Tack Shooter | `tack` | art | art |
 | Bomb Shooter | `bomb` | art | art |
 | Ice Monkey | `ice` | art | art |
-| Super Monkey | `super` | **needed** | art |
+| Super Monkey | `super` | art | art |
 | Banana Farm | `farm` | art | n/a — never rotates, logo is fine |
+
+**Towers are complete.** Only balloons and a music track remain.
 
 **Overheads must point up (north).** They are rotated by `angle - 90` to aim,
 so north is the zero-rotation orientation. A tower drawn facing right will aim
 90° off.
 
 **A tower with no overhead is drawn upright and never rotated.** Spinning a
-three-quarter portrait looks broken, so the game leaves it alone — which is
-why the Dart Monkey currently sits still on the map while the others turn.
+three-quarter portrait looks broken, so the game leaves it alone. Only the
+Banana Farm relies on that now, and it never rotates anyway.
 
 Two more things the map art should account for:
 
