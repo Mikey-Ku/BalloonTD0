@@ -135,3 +135,5 @@ tools/map_export/
 .btd/
 
 tools/asset_originals/
+
+.DS_Store

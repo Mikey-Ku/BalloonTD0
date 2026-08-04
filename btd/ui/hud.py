@@ -26,6 +26,7 @@ from ..game import Run, tower_sprite
 from ..towers import FARM, PULSE, Tower
 from ..towers import KINDS as TOWER_KINDS
 from ..towers import TOWER_ORDER
+from .. import sprites
 from . import chrome
 from .widgets import (
     Button, CENTER, RIGHT, RoundIconButton, draw_text, panel, progress_bar,
@@ -455,11 +456,11 @@ class Hud:
                 pygame.draw.rect(surface, chrome.mix(TEXT_GOLD, WOOD_FACE, 0.5),
                                  cell, 2, border_radius=8)
 
-            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (44, 44))
+            icon = tower_sprite_for_kind(key)
             if not widget.enabled:
                 icon = icon.copy()
                 icon.set_alpha(95)
-            surface.blit(icon, (cell.x + 8, cell.centery - 22))
+            surface.blit(icon, (cell.x + 8, cell.centery - ICON_SIZE // 2))
 
             name_colour = TEXT_WHITE if widget.enabled else (166, 150, 132)
             cost_colour = TEXT_GOLD if widget.enabled else (170, 132, 88)
@@ -531,7 +532,7 @@ class Hud:
                           self.rack_rect.width, 196)
         raised_panel(surface, top)
 
-        icon = pygame.transform.smoothscale(tower_sprite(tower), (38, 38))
+        icon = tower_sprite_for_kind(tower.kind.key)
         surface.blit(icon, (top.x + 11, top.y + 9))
         draw_text(surface, tower.kind.label, (top.x + 57, top.y + 10), 17, INK,
                   bold=True)
@@ -629,17 +630,32 @@ class Hud:
                 pygame.Rect(0, 0, MAP_W, MAP_H), width=220)
 
 
-#: Throwaway tower instances used purely to render shop icons.
-_PROBES: dict[str, Tower] = {}
+#: Size of the tower icons in the shop rack.
+ICON_SIZE = 46
 
 
 def tower_sprite_for_kind(key: str) -> pygame.Surface:
-    """Return a sprite for a tower type without needing a placed instance."""
+    """Return the shop-rack icon for a tower type.
+
+    Prefers the portrait logo; falls back to the overhead, then to the same
+    drawn glyph the map uses.
+    """
+    art = sprites.character(key, sprites.LOGO, ICON_SIZE)
+    if art is not None:
+        return art
+    return tower_sprite(_probe(key))
+
+
+_PROBES: dict[str, Tower] = {}
+
+
+def _probe(key: str) -> Tower:
+    """A throwaway tower instance, used only to render a glyph fallback."""
     probe = _PROBES.get(key)
     if probe is None:
         probe = Tower(TOWER_KINDS[key], 0, 0)
         _PROBES[key] = probe
-    return tower_sprite(probe)
+    return probe
 
 
 def _kind_stats(kind) -> list[tuple[str, str]]:

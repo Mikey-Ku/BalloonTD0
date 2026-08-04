@@ -24,7 +24,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pygame  # noqa: E402
 
-from btd import assets, balloons, game, maps  # noqa: E402
+from btd import assets, balloons, game, maps, sprites  # noqa: E402
+from btd.ui import hud  # noqa: E402
 from btd.config import MAP_H, MAP_W, USE_BALLOON_ART  # noqa: E402
 from btd.towers import KINDS as TOWER_KINDS  # noqa: E402
 from btd.towers import TOWER_ORDER  # noqa: E402
@@ -48,15 +49,16 @@ def collect() -> list[tuple[str, str, str, str, bool]]:
         rows.append(("Balloon", name, found or candidates[0],
                      f"{size}x{size}", in_use))
 
-    for key in TOWER_ORDER:
-        candidates = game.tower_art_candidates(key)
-        found = next((c for c in candidates if assets.exists(c)), None)
-        if found is None and TOWER_KINDS[key].image \
-                and assets.exists(TOWER_KINDS[key].image):
-            found = TOWER_KINDS[key].image
-        size = game.TOWER_SPRITE_SIZE
-        rows.append(("Tower", TOWER_KINDS[key].label, found or candidates[0],
-                     f"{size}x{size}", found is not None))
+    # Grouped by role, not by tower, so the report reads as two lists rather
+    # than alternating headers.
+    for role in (sprites.LOGO, sprites.OVERHEAD):
+        size = (game.TOWER_SPRITE_SIZE if role == sprites.OVERHEAD
+                else hud.ICON_SIZE)
+        for key in TOWER_ORDER:
+            found = sprites.find(key, role)
+            rows.append((f"Tower {role}", TOWER_KINDS[key].label,
+                         found or sprites.candidates(key, role)[0],
+                         f"{size}x{size}", found is not None))
 
     for key in maps.MAP_ORDER:
         candidates = maps.art_candidates(key)
@@ -106,6 +108,15 @@ def main() -> None:
               "balloon is\ndrawn procedurally at a uniform size regardless of "
               "any file present.\nTurn it on once a full, consistently sized "
               "set exists.")
+
+    gaps = sprites.missing()
+    if gaps:
+        print("\nTowers reusing art across both slots:")
+        for key, role in gaps:
+            other = sprites.LOGO if role == sprites.OVERHEAD else sprites.OVERHEAD
+            print(f"  {key:8s} has no {role}; its {other} is used in both "
+                  f"places")
+        print("  (a tower with no overhead is drawn upright, never rotated)")
     pygame.quit()
 
 

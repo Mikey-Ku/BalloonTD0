@@ -61,7 +61,6 @@ class TowerKind:
         label: Display name.
         cost: Base purchase price.
         blurb: Short description shown before purchase.
-        image: Sprite path relative to the project root.
         mode: One of :data:`SINGLE`, :data:`RADIAL`, :data:`HITSCAN`,
             :data:`PULSE`, :data:`FARM`.
         damage_type: Damage type dealt, from :mod:`btd.balloons`.
@@ -84,7 +83,6 @@ class TowerKind:
     label: str
     cost: int
     blurb: str
-    image: str | None
     mode: str
     damage_type: str = SHARP
     range: float = 110.0
@@ -102,9 +100,6 @@ class TowerKind:
     paths: tuple[tuple[Upgrade, ...], tuple[Upgrade, ...]] = ((), ())
 
 
-MONKEY = "monkey_images/"
-
-
 KINDS: dict[str, TowerKind] = {}
 
 
@@ -119,7 +114,6 @@ _register(TowerKind(
     label="Dart Monkey",
     cost=200,
     blurb="Cheap, reliable single-target damage. The backbone of any defence.",
-    image=MONKEY + "dart_monkey.png",
     mode=SINGLE,
     damage_type=SHARP,
     range=115, damage=1, pierce=2, rate=1.1,
@@ -145,7 +139,6 @@ _register(TowerKind(
     label="Sniper Monkey",
     cost=380,
     blurb="Hits anywhere on the map for heavy single-target damage. Slow.",
-    image=MONKEY + "sniper_monkey.png",
     mode=HITSCAN,
     damage_type=SHARP,
     range=9999, damage=4, pierce=1, rate=0.55,
@@ -172,7 +165,6 @@ _register(TowerKind(
     label="Tack Shooter",
     cost=300,
     blurb="Sprays tacks in every direction. Devastating on a tight corner.",
-    image=MONKEY + "tac_tower.png",
     mode=RADIAL,
     damage_type=SHARP,
     range=95, damage=1, pierce=1, rate=1.15, shots=8,
@@ -201,7 +193,6 @@ _register(TowerKind(
     label="Bomb Shooter",
     cost=560,
     blurb="Lobs explosives that damage everything nearby. Cannot pop black.",
-    image=None,
     mode=SINGLE,
     damage_type=EXPLOSIVE,
     range=140, damage=2, pierce=1, rate=0.85,
@@ -230,7 +221,6 @@ _register(TowerKind(
     label="Ice Monkey",
     cost=420,
     blurb="Chills every balloon in range, slowing them. Light damage.",
-    image=None,
     mode=PULSE,
     damage_type=NORMAL,
     range=105, damage=1, rate=0.8,
@@ -259,7 +249,6 @@ _register(TowerKind(
     label="Super Monkey",
     cost=2800,
     blurb="Overwhelming rate of fire at long range. Expensive.",
-    image=MONKEY + "super_monkey.png",
     mode=SINGLE,
     damage_type=ENERGY,
     range=190, damage=1, pierce=1, rate=9.0,
@@ -289,7 +278,6 @@ _register(TowerKind(
     label="Banana Farm",
     cost=1100,
     blurb="Does not attack. Produces money at the end of every round.",
-    image=None,
     mode=FARM,
     range=0, damage=0, rate=0,
     income=180,

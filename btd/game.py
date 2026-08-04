@@ -23,7 +23,7 @@ import math
 
 import pygame
 
-from . import assets, maps
+from . import maps, sprites
 from .balloons import Balloon, resolve_hit, sprite_for
 from .config import (
     DIFFICULTIES, MAP_H, MAP_W, MAX_STEPS_PER_FRAME, ROUND_BONUS_BASE,
@@ -506,8 +506,11 @@ class Run:
 
         pos = (int(pos_x), int(pos_y))
         sprite = tower_sprite(tower)
-        rotated = pygame.transform.rotate(sprite, tower.angle - 90)
-        surface.blit(rotated, rotated.get_rect(center=pos))
+        if sprites.has_overhead(tower.kind.key) and tower.kind.mode != FARM:
+            # Only real top-down art is rotated. Spinning a portrait logo
+            # because no overhead was supplied looks broken, so it stays put.
+            sprite = pygame.transform.rotate(sprite, tower.angle - 90)
+        surface.blit(sprite, sprite.get_rect(center=pos))
 
         # Muzzle flash on the frame the shot leaves.
         if tower.fire_anim > 0.75 and tower.kind.mode != FARM:
@@ -543,40 +546,28 @@ class Run:
 _TOWER_SPRITES: dict[str, pygame.Surface] = {}
 
 
-#: On-screen size of a tower sprite, in pixels.
-TOWER_SPRITE_SIZE = 40
-
-
-def tower_art_candidates(key: str) -> list[str]:
-    """Filenames checked for a tower's artwork, in priority order.
-
-    ``monkey_images/<key>.png`` is the slot to drop new art into. Art must
-    face **up**: sprites are rotated by ``angle - 90`` so that north is the
-    zero-rotation orientation.
-    """
-    return [f"monkey_images/{key}.png", f"monkey_images/{key}_monkey.png"]
+#: On-screen size of a tower on the map, in pixels.
+TOWER_SPRITE_SIZE = 48
 
 
 def tower_sprite(tower: Tower) -> pygame.Surface:
-    """Return the cached sprite for a tower, drawing one if it has no art.
+    """Return the cached map sprite for a tower.
 
-    Only four of the seven towers have artwork in the repository; the rest
-    fall back to a drawn glyph in the tower's accent colour until a PNG is
-    dropped into the matching slot.
+    Prefers the top-down overhead art, falls back to the portrait logo, and
+    finally to a drawn glyph. See :mod:`btd.sprites`.
     """
     key = tower.kind.key
     cached = _TOWER_SPRITES.get(key)
     if cached is not None:
         return cached
 
-    size = (TOWER_SPRITE_SIZE, TOWER_SPRITE_SIZE)
-    surf = assets.optional(tower_art_candidates(key) + [tower.kind.image], size)
-    if surf is None:
-        surf = _draw_tower_glyph(TOWER_SPRITE_SIZE, tower.kind.colour,
-                                 tower.kind.mode)
+    art = sprites.character(key, sprites.OVERHEAD, TOWER_SPRITE_SIZE)
+    if art is None:
+        art = _draw_tower_glyph(TOWER_SPRITE_SIZE, tower.kind.colour,
+                               tower.kind.mode)
 
-    _TOWER_SPRITES[key] = surf
-    return surf
+    _TOWER_SPRITES[key] = art
+    return art
 
 
 def _draw_tower_glyph(size: int, colour: tuple[int, int, int],

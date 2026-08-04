@@ -10,7 +10,7 @@ Check status at any time:
 python tools/asset_report.py
 ```
 
-Right now: **5 of 24 slots use real artwork; the other 19 are drawn in code.**
+Right now: **14 of 31 slots use real artwork; the other 17 are drawn in code.**
 
 ---
 
@@ -70,33 +70,57 @@ one file per balloon, not one per combination.
 The five old `<name>_balloon.png` files are no longer loaded. They are
 inconsistent in size and style with each other; that is what prompted this.
 
-## 2. Towers — 3 needed
+## 2. Towers — 3 slots left
 
-`monkey_images/<key>.png`, all **40×40** on screen.
+Each tower can have **two** pieces of art:
 
-| Tower | File | Status |
+| File | Where | Rotated? |
 |---|---|---|
-| Dart Monkey | `dart_monkey.png` | art |
-| Sniper Monkey | `sniper_monkey.png` | art |
-| Tack Shooter | `tac_tower.png` | art |
-| Super Monkey | `super_monkey.png` | art |
-| **Bomb Shooter** | `bomb.png` | **needed** |
-| **Ice Monkey** | `ice.png` | **needed** |
-| **Banana Farm** | `farm.png` | **needed** |
+| `monkey_images/<key>_logo.png` | shop rack in the sidebar, 46×46 | never |
+| `monkey_images/<key>_overhead.png` | on the map, 48×48 | **yes**, to face its target |
 
-**Towers must face up (north).** Sprites are rotated by `angle - 90` to aim, so
-north is the zero-rotation orientation. A tower drawn facing right will aim 90°
-off.
+Either may be missing — a tower with only one uses it in both places, so art
+can land one piece at a time without breaking anything.
 
-Two consequences of how towers animate, worth designing around:
+| Tower | key | logo | overhead |
+|---|---|---|---|
+| Dart Monkey | `dart` | art | **needed** |
+| Sniper Monkey | `sniper` | art | art |
+| Tack Shooter | `tack` | art | art |
+| Bomb Shooter | `bomb` | art | art |
+| Ice Monkey | `ice` | art | art |
+| Super Monkey | `super` | **needed** | art |
+| Banana Farm | `farm` | art | n/a — never rotates, logo is fine |
 
-- They **recoil backwards** along their facing when they fire, and a muzzle
-  flash is drawn 18 px out from the centre in the facing direction. Leave the
-  "barrel" end pointing cleanly up so the flash lands at the muzzle.
-- The same sprite is reused as the shop icon at **28×28**, so the silhouette
-  has to survive being small.
+**Overheads must point up (north).** They are rotated by `angle - 90` to aim,
+so north is the zero-rotation orientation. A tower drawn facing right will aim
+90° off.
 
-The Banana Farm never rotates or fires, so neither rule applies to it.
+**A tower with no overhead is drawn upright and never rotated.** Spinning a
+three-quarter portrait looks broken, so the game leaves it alone — which is
+why the Dart Monkey currently sits still on the map while the others turn.
+
+Two more things the map art should account for:
+
+- Towers **recoil backwards** along their facing when they fire, and a muzzle
+  flash draws 18 px out in the facing direction. Keep the barrel end pointing
+  cleanly up so the flash lands at the muzzle.
+- The Banana Farm never rotates or fires, so neither rule applies to it.
+
+### Sizing is handled for you
+
+You do not need to match canvas sizes. Every sprite is **cropped to its
+visible pixels** and scaled so that content fits the target box, so a
+character occupying 37% of its canvas and one filling 100% come out the same
+size on screen. The art delivered so far ranged across both, and across
+1024×1024 and 1024×1536 sheets, and all of it normalises to 45 px on its
+longest edge.
+
+Filenames follow `<key>_logo.png` / `<key>_overhead.png`. Descriptive names
+like `Cannon-Overhead.png` or `Ice-Monkey-Logo.png` are also accepted (see
+`ALIASES` in [btd/sprites.py](btd/sprites.py)), but the key form is preferred
+— it is case-exact, and macOS will happily match a mis-cased filename that
+then fails on Linux and in the browser build.
 
 ## 3. Map backgrounds — all covered
 
