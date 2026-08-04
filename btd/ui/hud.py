@@ -18,20 +18,26 @@ import pygame
 
 from ..balloons import ENERGY, EXPLOSIVE, SHARP
 from ..config import (
-    BAD, BERRY, INK, INK_SOFT, LEAF_DARK, LIVES, MAP_H, MAP_W, MONEY, PAPER,
-    RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W, SUN, WOOD_DARK,
+    BAD, BERRY, BUTTON_RED, BUTTON_RED_DARK, INK, INK_SOFT, LEAF_DARK, MAP_H,
+    MAP_W, MONEY, PAPER, RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W, SUN,
+    TEXT_GOLD, TEXT_WHITE, WOOD_FACE, WOOD_SHADE,
 )
 from ..game import Run, tower_sprite
 from ..towers import FARM, PULSE, Tower
 from ..towers import KINDS as TOWER_KINDS
 from ..towers import TOWER_ORDER
+from . import chrome
 from .widgets import (
-    Button, IconButton, CENTER, RIGHT, draw_text, panel, progress_bar,
-    raised_panel, tooltip, wood_backdrop,
+    Button, CENTER, RIGHT, RoundIconButton, draw_text, panel, progress_bar,
+    raised_panel, tooltip,
 )
 
 SIDEBAR_X = MAP_W
 PAD = 10
+
+#: Tower rack cell geometry.
+CELL_GAP = 8
+CELL_H = 64
 
 DAMAGE_LABELS = {
     SHARP: "Sharp",
@@ -67,43 +73,55 @@ class Hud:
     # -- layout -----------------------------------------------------------
 
     def _build_static(self) -> None:
-        """Create the shop grid and the always-present run controls."""
-        col_w = (SIDEBAR_W - PAD * 3) // 2
+        """Create the shop rack and the always-present run controls.
+
+        The sidebar is laid out as a shelf unit: a stat plaque, a round strip,
+        a rack of recessed cubbies holding the towers, a detail panel, and a
+        row of controls along the bottom.
+        """
+        self.frame_rect = pygame.Rect(SIDEBAR_X, 0, SIDEBAR_W, SCREEN_H)
+        self.stats_rect = pygame.Rect(SIDEBAR_X + 8, 8, SIDEBAR_W - 16, 76)
+        self.round_rect = pygame.Rect(SIDEBAR_X + 8, 90, SIDEBAR_W - 16, 30)
+        self.rack_rect = pygame.Rect(SIDEBAR_X + 8, 126, SIDEBAR_W - 16, 296)
+        self.detail_rect = pygame.Rect(SIDEBAR_X + 8, 430, SIDEBAR_W - 16, 212)
+
+        cell_w = (self.rack_rect.width - CELL_GAP * 3) // 2
         for i, key in enumerate(TOWER_ORDER):
             kind = TOWER_KINDS[key]
             col, row = i % 2, i // 2
             rect = pygame.Rect(
-                SIDEBAR_X + PAD + col * (col_w + PAD),
-                112 + row * 62,
-                col_w, 54,
+                self.rack_rect.x + CELL_GAP + col * (cell_w + CELL_GAP),
+                self.rack_rect.y + CELL_GAP + row * (CELL_H + CELL_GAP),
+                cell_w, CELL_H,
             )
             self.shop_buttons.append(
                 Button(rect, kind.label, f"buy:{key}", accent=kind.colour,
                        size=15, draw_label=False)
             )
 
-        # All four run controls share the bottom row. The menu button used to
-        # sit in the top-right corner, where it covered the lives counter.
-        bottom = SCREEN_H - 60
-        icon_w, gap = 46, 6
-        usable = SIDEBAR_W - PAD * 2
-        start_w = usable - icon_w * 3 - gap * 3
-        x = SIDEBAR_X + PAD
+        # Controls: a wide wooden Start plate, then three glossy round
+        # buttons. The menu button used to sit in the top-right corner, where
+        # it covered the lives counter.
+        bottom = SCREEN_H - 64
+        dia, gap = 52, 8
+        start_w = SIDEBAR_W - 16 - dia * 3 - gap * 3
+        x = SIDEBAR_X + 8
 
         self.start_button = Button(
-            (x, bottom, start_w, 48), "Start Round", "start", size=17
+            (x, bottom + 2, start_w, 48), "Start Round", "start", size=17
         )
         x += start_w + gap
-        self.speed_button = IconButton(
-            (x, bottom, icon_w, 48), "1x", "speed", size=17
+        self.speed_button = RoundIconButton(
+            (x, bottom, dia, dia), "1x", "speed", size=17
         )
-        x += icon_w + gap
-        self.pause_button = IconButton(
-            (x, bottom, icon_w, 48), "Pause", "pause", glyph="pause", size=17
+        x += dia + gap
+        self.pause_button = RoundIconButton(
+            (x, bottom, dia, dia), "Pause", "pause", glyph="pause", size=17
         )
-        x += icon_w + gap
-        self.menu_button = IconButton(
-            (x, bottom, icon_w, 48), "Menu", "menu", glyph="menu", size=17
+        x += dia + gap
+        self.menu_button = RoundIconButton(
+            (x, bottom, dia, dia), "Menu", "menu", glyph="menu", size=17,
+            face=BUTTON_RED, dark=BUTTON_RED_DARK,
         )
         self.control_buttons = [
             self.start_button, self.speed_button, self.pause_button,
@@ -116,14 +134,14 @@ class Hud:
             return []
 
         tower = self.selected
-        top = 372
-        width = SIDEBAR_W - PAD * 2
+        top = self.rack_rect.y + 206
+        width = self.rack_rect.width
         out: list[Button] = []
 
         for path in (0, 1):
             upgrade = tower.next_upgrade(path)
             cost = tower.upgrade_cost(path)
-            rect = pygame.Rect(SIDEBAR_X + PAD, top + path * 60, width, 52)
+            rect = pygame.Rect(self.rack_rect.x, top + path * 58, width, 50)
 
             if upgrade is None:
                 button = Button(rect, "Path maxed", f"none:{path}", size=15)
@@ -138,13 +156,12 @@ class Hud:
                 button.enabled = self.run.money >= cost
             out.append(button)
 
-        target_rect = pygame.Rect(SIDEBAR_X + PAD, top + 128, width - 108, 40)
+        target_rect = pygame.Rect(self.rack_rect.x, top + 122, width - 106, 40)
         out.append(Button(target_rect, f"Target: {tower.targeting}",
                           "targeting", size=15))
-        sell_rect = pygame.Rect(SIDEBAR_X + SIDEBAR_W - PAD - 98, top + 128, 98, 40)
-        sell = Button(sell_rect, f"Sell ${tower.sell_value:,}", "sell",
-                      accent=BAD, size=14)
-        out.append(sell)
+        sell_rect = pygame.Rect(self.rack_rect.right - 100, top + 122, 100, 40)
+        out.append(Button(sell_rect, f"Sell ${tower.sell_value:,}", "sell",
+                          accent=BAD, size=14))
         return out
 
     # -- state ------------------------------------------------------------
@@ -358,11 +375,11 @@ class Hud:
         surface.blit(layer, (int(x) - size // 2, int(y) - size // 2))
 
     def draw(self, surface: pygame.Surface) -> None:
-        """Draw the whole sidebar."""
-        rect = pygame.Rect(SIDEBAR_X, 0, SIDEBAR_W, SCREEN_H)
-        wood_backdrop(surface, rect)
+        """Draw the whole sidebar as a wooden cabinet."""
+        chrome.beveled(surface, self.frame_rect, WOOD_FACE, radius=0, depth=6)
 
         self._draw_stats(surface)
+        self._draw_round_strip(surface)
         if self.selected is not None:
             self._draw_tower_panel(surface)
         else:
@@ -372,64 +389,88 @@ class Hud:
             widget.draw(surface)
 
         if self.run.auto_start:
-            draw_text(surface, "AUTO", (SIDEBAR_X + PAD, SCREEN_H - 78), 13,
-                      SUN, bold=True)
+            chrome.blit_outlined(surface, "AUTO",
+                                 (SIDEBAR_X + 12, SCREEN_H - 82), 13, SUN)
 
         self._draw_hover_tooltip(surface)
 
     def _draw_stats(self, surface: pygame.Surface) -> None:
-        """Draw money, lives, round number, and round progress."""
+        """Draw the money and lives plaque with icons and outlined numerals."""
         run = self.run
-        card = pygame.Rect(SIDEBAR_X + PAD, 8, SIDEBAR_W - PAD * 2, 94)
-        raised_panel(surface, card)
+        card = self.stats_rect
+        chrome.beveled(surface, card, WOOD_FACE, radius=10, depth=4)
 
-        draw_text(surface, f"${run.money:,}", (card.x + 12, card.y + 8), 26,
-                  MONEY, bold=True)
-        draw_text(surface, f"{run.lives}", (card.right - 12, card.y + 8), 26,
-                  LIVES, bold=True, align=RIGHT)
+        chrome.coin_icon(surface, (card.x + 26, card.y + 22), 12)
+        chrome.blit_outlined(surface, f"{run.money:,}",
+                             (card.x + 46, card.y + 8), 25, TEXT_GOLD)
 
-        lives_bar = pygame.Rect(card.x + 12, card.y + 40, card.width - 24, 7)
+        chrome.heart_icon(surface, (card.x + 26, card.y + 52), 21)
+        chrome.blit_outlined(surface, f"{run.lives}",
+                             (card.x + 46, card.y + 38), 25, TEXT_WHITE)
+
+        lives_bar = pygame.Rect(card.x + 46, card.y + 62, card.width - 60, 6)
         progress_bar(surface, lives_bar, run.lives / max(1, run.max_lives),
-                     fill=BERRY)
-
-        draw_text(surface, f"Round {run.round_number} / {run.max_rounds}",
-                  (card.x + 12, card.y + 52), 16, INK, bold=True)
-        draw_text(surface, run.wave.describe()[:42],
-                  (card.x + 12, card.y + 71), 13, INK_SOFT)
-
-        if run.round_active:
-            bar = pygame.Rect(card.x + 12, card.bottom - 9, card.width - 24, 5)
-            progress_bar(surface, bar, run.round_progress)
+                     fill=BERRY, back=WOOD_SHADE)
 
         if self.message_timer > 0:
-            banner = pygame.Rect(SIDEBAR_X + PAD, 106, SIDEBAR_W - PAD * 2, 24)
-            panel(surface, banner, BERRY, WOOD_DARK, radius=6, width=2)
-            draw_text(surface, self.message, (banner.centerx, banner.y + 4), 15,
+            banner = pygame.Rect(card.x, card.bottom - 22, card.width, 22)
+            panel(surface, banner, BERRY, WOOD_SHADE, radius=6, width=2)
+            draw_text(surface, self.message, (banner.centerx, banner.y + 3), 14,
                       PAPER, bold=True, align=CENTER)
 
+    def _draw_round_strip(self, surface: pygame.Surface) -> None:
+        """Draw the round counter and next-wave summary on a wooden strip."""
+        run = self.run
+        strip = self.round_rect
+        chrome.plank_strip(surface, strip)
+
+        chrome.blit_outlined(surface, f"Round {run.round_number}/{run.max_rounds}",
+                             (strip.x + 8, strip.y + 5), 16, TEXT_WHITE)
+        chrome.blit_outlined(surface, run.wave.describe()[:26],
+                             (strip.right - 8, strip.y + 7), 13, TEXT_GOLD,
+                             align=RIGHT)
+
+        if run.round_active:
+            bar = pygame.Rect(strip.x + 4, strip.bottom - 6, strip.width - 8, 4)
+            progress_bar(surface, bar, run.round_progress, back=WOOD_SHADE)
+
     def _draw_shop(self, surface: pygame.Surface) -> None:
-        """Draw the tower shop grid and details for the hovered entry."""
+        """Draw the tower rack and details for the hovered entry.
+
+        Each tower sits in a recessed cubby rather than on a flat button, so
+        the rack reads as a shelf unit built into the sidebar.
+        """
+        chrome.beveled(surface, self.rack_rect, WOOD_SHADE, radius=10,
+                       depth=4, raised=False)
+
         for widget, key in zip(self.shop_buttons, TOWER_ORDER):
             kind = TOWER_KINDS[key]
             cost = self.run.tower_cost(key)
-            widget.draw(surface)
-            face = widget.body_rect()
+            cell = widget.rect
+            chrome.cubby(surface, cell)
 
-            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (28, 28))
+            if widget.selected:
+                pygame.draw.rect(surface, TEXT_GOLD, cell, 3, border_radius=8)
+            elif widget.hovered:
+                pygame.draw.rect(surface, chrome.mix(TEXT_GOLD, WOOD_FACE, 0.5),
+                                 cell, 2, border_radius=8)
+
+            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (34, 34))
             if not widget.enabled:
                 icon = icon.copy()
-                icon.set_alpha(100)
-            surface.blit(icon, (face.x + 8, face.y + 13))
+                icon.set_alpha(95)
+            surface.blit(icon, (cell.x + 7, cell.centery - 17))
 
-            _, _, text_colour = widget.palette()
-            draw_text(surface, kind.label, (face.x + 42, face.y + 8), 14,
-                      text_colour, bold=True)
-            draw_text(surface, f"${cost:,}", (face.x + 42, face.y + 28), 14,
-                      MONEY if widget.enabled else text_colour)
+            name_colour = TEXT_WHITE if widget.enabled else (166, 150, 132)
+            cost_colour = TEXT_GOLD if widget.enabled else (170, 132, 88)
+            # Full label, not a stripped one: dropping "Monkey" left the rack
+            # reading "Dart / Sniper / Tack Shooter / Banana Farm".
+            chrome.blit_outlined(surface, kind.label,
+                                 (cell.x + 46, cell.y + 12), 13, name_colour)
+            chrome.blit_outlined(surface, f"${cost:,}",
+                                 (cell.x + 46, cell.y + 33), 15, cost_colour)
 
-        hint_y = 112 + ((len(TOWER_ORDER) + 1) // 2) * 62 + 8
-        info = pygame.Rect(SIDEBAR_X + PAD, hint_y, SIDEBAR_W - PAD * 2,
-                           SCREEN_H - 74 - hint_y)
+        info = self.detail_rect
         raised_panel(surface, info)
 
         key = self.hover_shop or self.shop_selection
@@ -487,14 +528,15 @@ class Hud:
     def _draw_tower_panel(self, surface: pygame.Surface) -> None:
         """Draw the inspector for the currently selected tower."""
         tower = self.selected
-        top = pygame.Rect(SIDEBAR_X + PAD, 112, SIDEBAR_W - PAD * 2, 248)
+        top = pygame.Rect(self.rack_rect.x, self.rack_rect.y,
+                          self.rack_rect.width, 196)
         raised_panel(surface, top)
 
-        icon = pygame.transform.smoothscale(tower_sprite(tower), (36, 36))
+        icon = pygame.transform.smoothscale(tower_sprite(tower), (38, 38))
         surface.blit(icon, (top.x + 11, top.y + 9))
-        draw_text(surface, tower.kind.label, (top.x + 55, top.y + 9), 17, INK,
+        draw_text(surface, tower.kind.label, (top.x + 57, top.y + 10), 17, INK,
                   bold=True)
-        draw_text(surface, f"Tier {tower.tier_label}", (top.x + 55, top.y + 29),
+        draw_text(surface, f"Tier {tower.tier_label}", (top.x + 57, top.y + 30),
                   13, LEAF_DARK, bold=True)
 
         y = top.y + 56
@@ -502,11 +544,10 @@ class Hud:
             draw_text(surface, label, (top.x + 12, y), 13, INK_SOFT)
             draw_text(surface, value, (top.right - 12, y), 13, INK,
                       bold=True, align=RIGHT)
-            y += 18
+            y += 17
 
-        y += 6
         draw_text(surface, f"Pops {tower.pops:,}   Earned ${tower.cash_earned:,}",
-                  (top.x + 12, y), 12, INK_SOFT)
+                  (top.x + 12, top.bottom - 20), 12, INK_SOFT)
 
         for widget in self.panel_buttons:
             widget.draw(surface)
@@ -521,9 +562,57 @@ class Hud:
                 draw_text(surface, line, (face.centerx, face.bottom - 17), 11,
                           text_colour, align=CENTER)
 
-        draw_text(surface, "ESC deselect  -  TAB target  -  U / I upgrade",
-                  (SIDEBAR_X + SIDEBAR_W // 2, 372 + 182), 12, PAPER,
-                  align=CENTER, shadow=True)
+        self._draw_path_overview(surface, tower)
+
+        chrome.blit_outlined(
+            surface, "ESC deselect  -  TAB target  -  U / I upgrade",
+            (SIDEBAR_X + SIDEBAR_W // 2, self.detail_rect.bottom + 4), 12,
+            TEXT_WHITE, align=CENTER, thickness=1)
+
+    def _draw_path_overview(self, surface: pygame.Surface, tower: Tower) -> None:
+        """Show both upgrade paths with the purchased tiers filled in.
+
+        Occupies the space below the action buttons, which was otherwise a
+        blank stretch of sidebar, and makes the cross-path rule visible: once
+        one path reaches its final tier the other is capped, and that shows
+        here as greyed pips.
+        """
+        box = pygame.Rect(self.rack_rect.x, self.rack_rect.y + 378,
+                          self.rack_rect.width, 128)
+        raised_panel(surface, box)
+
+        draw_text(surface, "Upgrade paths", (box.x + 12, box.y + 8), 14, INK,
+                  bold=True)
+
+        for path in (0, 1):
+            top = box.y + 32 + path * 46
+            tier = tower.tiers[path]
+            available = tower.can_upgrade(path)
+
+            draw_text(surface, f"Path {path + 1}", (box.x + 12, top), 12,
+                      LEAF_DARK, bold=True)
+
+            for step in range(len(tower.kind.paths[path])):
+                centre = (box.x + 84 + step * 22, top + 7)
+                if step < tier:
+                    pygame.draw.circle(surface, LEAF_DARK, centre, 8)
+                    pygame.draw.circle(surface, INK, centre, 8, 2)
+                elif step == tier and available:
+                    pygame.draw.circle(surface, PAPER, centre, 8)
+                    pygame.draw.circle(surface, LEAF_DARK, centre, 8, 2)
+                else:
+                    pygame.draw.circle(surface, (206, 196, 176), centre, 7)
+                    pygame.draw.circle(surface, INK_SOFT, centre, 7, 1)
+
+            nxt = tower.next_upgrade(path)
+            if nxt is None:
+                caption = "complete"
+            elif not available:
+                caption = "capped by the other path"
+            else:
+                caption = nxt.name
+            draw_text(surface, caption[:34], (box.x + 12, top + 20), 12,
+                      INK_SOFT)
 
     def _draw_hover_tooltip(self, surface: pygame.Surface) -> None:
         """Show a compact tooltip when hovering a placed tower on the map."""

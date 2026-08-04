@@ -24,7 +24,7 @@ Right now: **5 of 24 slots use real artwork; the other 19 are drawn in code.**
 - **Centre the subject** with even margins. Sprites are drawn centred on their
   position, so an off-centre subject looks off-centre in game.
 - **Outline**: the procedural art uses a 2–4 px dark brown outline
-  (`#34221 6`) on everything. Matching it will keep hand-drawn and generated
+  (`#342216`) on everything. Matching it will keep hand-drawn and generated
   sprites looking like one set while the two are mixed.
 
 ---
@@ -163,14 +163,26 @@ If you want hand-drawn UI pieces later — panel frames, button plates, a title
 logo — these are the colours the interface uses, from
 [btd/config.py](btd/config.py):
 
-| Role | Colour |
-|---|---|
-| Panel fill (cream) | `#FCF5E2` |
-| Panel fill, resting | `#E8DABE` |
-| Frame / border (wood) | `#704A2C` |
-| Sidebar backdrop | `#4A301E` |
-| Primary text (ink) | `#3E291A` |
-| Secondary text | `#7A5E46` |
-| Accent (leaf) | `#68B648` |
-| Money | `#CE8E16` |
-| Lives / danger | `#C63634` |
+| Role | Colour | Used for |
+|---|---|---|
+| Wood highlight | `#C0884A` | lit top bevel |
+| Wood face | `#925E2E` | cabinet frame, plaques |
+| Wood shade | `#5C391B` | bottom bevel, rack backing |
+| Wood recess | `#321F10` | inside of the tower cubbies |
+| Panel fill (cream) | `#FCF5E2` | detail panels, buttons |
+| Panel fill, resting | `#E8DABE` | button faces |
+| Primary text (ink) | `#3E291A` | text on cream |
+| Secondary text | `#7A5E46` | labels on cream |
+| Display gold | `#FFD44A` | money, prices — outlined |
+| Display white | `#FFFCF2` | lives, tower names — outlined |
+| Text outline | `#301C0E` | 2 px outline on all display text |
+| Accent (leaf) | `#68B648` | selection, upgrade pips |
+| Lives / danger | `#C63634` | health bar, menu button |
+| Button blue | `#3E9AE4` | speed and pause controls |
+| Button red | `#E24E42` | menu control |
+
+The sidebar is drawn as a wooden cabinet: a beveled outer frame, a raised
+plaque for money and lives, a sunken rack holding one recessed cubby per
+tower, a cream detail panel, and glossy circular controls along the bottom.
+All of it is drawn with primitives in [btd/ui/chrome.py](btd/ui/chrome.py) —
+there is no UI artwork to produce unless you want to replace it.

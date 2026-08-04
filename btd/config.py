@@ -111,6 +111,27 @@ WOOD_DARK = (74, 48, 30)    # sidebar backdrop
 WOOD = (112, 74, 44)        # panel frames
 WOOD_LIGHT = (150, 102, 62) # raised edges and hover
 
+# Cabinet woodwork. The sidebar is built as a shelf unit -- a beveled outer
+# frame with recessed cubbies -- so these are the tones a bevel needs: a lit
+# top edge, a mid face, a shaded bottom edge, and a dark recess behind.
+WOOD_HILITE = (192, 136, 74)
+WOOD_FACE = (146, 94, 46)
+WOOD_SHADE = (92, 57, 27)
+WOOD_RECESS = (50, 31, 16)
+
+# Glossy round controls, as on the fast-forward and settings buttons.
+BUTTON_BLUE = (62, 154, 228)
+BUTTON_BLUE_DARK = (26, 88, 152)
+BUTTON_RED = (226, 78, 66)
+BUTTON_RED_DARK = (146, 38, 32)
+BUTTON_GREEN = (110, 194, 74)
+BUTTON_GREEN_DARK = (56, 122, 44)
+
+# Outlined display text, the chunky style used for money and lives.
+TEXT_OUTLINE = (48, 28, 14)
+TEXT_GOLD = (255, 212, 74)
+TEXT_WHITE = (255, 252, 242)
+
 LEAF = (104, 182, 72)       # primary accent
 LEAF_DARK = (62, 132, 58)
 LEAF_LIGHT = (156, 214, 108)

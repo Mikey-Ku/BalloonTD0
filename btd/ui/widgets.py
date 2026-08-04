@@ -17,9 +17,11 @@ import pygame
 
 from .. import assets
 from ..config import (
-    ACCENT, BERRY, INK, INK_SOFT, LEAF, LEAF_DARK, LEAF_LIGHT, PAPER,
-    PAPER_DIM, WOOD, WOOD_DARK, WOOD_LIGHT,
+    ACCENT, BERRY, BUTTON_BLUE, BUTTON_BLUE_DARK, INK, INK_SOFT, LEAF,
+    LEAF_DARK, LEAF_LIGHT, PAPER, PAPER_DIM, TEXT_WHITE, WOOD, WOOD_DARK,
+    WOOD_LIGHT,
 )
+from . import chrome
 
 LEFT = "left"
 CENTER = "center"
@@ -233,6 +235,38 @@ class IconButton(Button):
         font = assets.font(self.size, bold=True)
         label = font.render(self.label, True, text_colour)
         surface.blit(label, label.get_rect(center=face.center))
+
+
+class RoundIconButton(Button):
+    """A glossy circular control, as used for speed, pause, and the menu.
+
+    Hit-testing still uses the bounding rect, which is close enough for a
+    circle this size and keeps the click routing identical to every other
+    button.
+    """
+
+    def __init__(self, rect, label: str, action: str, glyph: str = "",
+                 face=None, dark=None, **kwargs):
+        super().__init__(rect, label, action, **kwargs)
+        self.glyph = glyph
+        self.face = face or BUTTON_BLUE
+        self.dark = dark or BUTTON_BLUE_DARK
+
+    def draw(self, surface: pygame.Surface) -> None:
+        """Render the circular button and its glyph."""
+        radius = min(self.rect.width, self.rect.height) // 2
+        centre = self.rect.center
+        chrome.round_button(surface, centre, radius, self.face, self.dark,
+                            pressed=self.hovered, enabled=self.enabled)
+
+        ink = TEXT_WHITE if self.enabled else (206, 206, 206)
+        c_y = centre[1] + (2 if self.hovered else 0)
+        if self.glyph:
+            _draw_glyph(surface, self.glyph, (centre[0], c_y), ink)
+        else:
+            label = chrome.outlined_text(self.label, self.size, ink,
+                                         thickness=2)
+            surface.blit(label, label.get_rect(center=(centre[0], c_y)))
 
 
 def _draw_glyph(surface: pygame.Surface, glyph: str,
