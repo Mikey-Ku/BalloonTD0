@@ -170,7 +170,7 @@ class MapSelectScreen(Screen):
         gap = 16
         per_row = min(3, len(maps.MAP_ORDER))
         rows = (len(maps.MAP_ORDER) + per_row - 1) // per_row
-        top = 118 if rows > 1 else 176
+        top = 118 if rows > 1 else 202
 
         self.card_rects = {}
         for i, key in enumerate(maps.MAP_ORDER):

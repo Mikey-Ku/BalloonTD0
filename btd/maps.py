@@ -6,10 +6,15 @@ with a background image that already had the track painted on it. That is kept
 as-is, but adding a second map that way would mean hand-producing another
 2,500-row CSV.
 
-So maps here are authored as a dozen control points instead. A Catmull-Rom
-spline turns them into a smooth path, and the background is rendered from that
-same path at load time -- meaning the art can never drift out of sync with
-where the balloons actually walk.
+So maps here are authored as a list of control points instead. A Catmull-Rom
+spline turns them into a smooth path. Every shipped map pairs those points
+with hand-drawn artwork, and ``tools/trace_map.py`` derives the points *from*
+that artwork so the two cannot drift apart.
+
+A map may also omit artwork entirely, in which case the background is painted
+from the path itself. No shipped map does that today, but it is the on-ramp
+for a new one: drop in control points, play it immediately, and replace the
+generated background with art later.
 """
 
 from __future__ import annotations
@@ -69,38 +74,10 @@ def _add(m: MapDef) -> MapDef:
 _add(MapDef(
     key="meadow",
     name="Monkey Meadow",
-    difficulty="Beginner",
+    difficulty="Intermediate",
     csv="equidistant_points.csv",
     background="background_images/Background.webp",
 ))
-
-_add(MapDef(
-    key="switchback",
-    name="Switchback",
-    difficulty="Intermediate",
-    control=(
-        (-40, 140), (170, 140), (330, 250), (150, 380), (150, 520),
-        (420, 610), (640, 500), (690, 300), (860, 230), (1000, 380),
-    ),
-    grass=(96, 146, 92),
-    track=(186, 160, 120),
-))
-
-_add(MapDef(
-    key="spiral",
-    name="Coil",
-    difficulty="Advanced",
-    control=(
-        (500, -40), (500, 150), (770, 220), (810, 430), (580, 545),
-        (320, 470), (270, 265), (450, 200), (585, 340), (545, 600),
-        (230, 660), (-40, 610),
-    ),
-    grass=(88, 130, 100),
-    track=(168, 148, 128),
-    track_width=42,
-    decor=(64, 102, 76),
-))
-
 
 # Traced from artwork with tools/trace_map.py -- the control points below are
 # the measured centre line of the painted track, not hand-placed guesses.
@@ -145,7 +122,9 @@ _add(MapDef(
 ))
 
 
-MAP_ORDER = ("meadow", "sprint", "park", "switchback", "spiral")
+#: Shown in this order in the picker: easiest first. Sprint's three laps give
+#: towers three passes at everything, so it is by far the gentlest.
+MAP_ORDER = ("sprint", "meadow", "park")
 
 
 def build_path(map_def: MapDef) -> Path:

@@ -9,7 +9,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 
-from btd import maps
+from btd import assets, maps
 from btd.config import DIFFICULTIES, MAP_H, MAP_W, TICK
 from btd.game import LOST, RUNNING, WON, BalloonIndex, Run
 from btd.balloons import KINDS as BALLOON_KINDS
@@ -333,6 +333,29 @@ class TestMaps(unittest.TestCase):
     def test_map_order_matches_the_registry(self):
         self.assertEqual(set(maps.MAP_ORDER), set(maps.MAPS))
 
+    def test_every_map_has_artwork(self):
+        """All three shipped maps are art-backed, not procedurally painted."""
+        for key in maps.MAP_ORDER:
+            map_def = maps.MAPS[key]
+            slots = maps.art_candidates(key) + [map_def.background]
+            self.assertTrue(any(assets.exists(c) for c in slots if c),
+                            f"{key} has no background artwork")
+
+    def test_procedural_background_still_works(self):
+        """The art-free fallback is the on-ramp for adding a new map.
+
+        No shipped map uses it, so without this it would rot unnoticed.
+        """
+        map_def = maps.MapDef(
+            key="scratch", name="Scratch", difficulty="Test",
+            control=((-40, 100), (300, 200), (600, 500), (1000, 400)),
+        )
+        path = maps.build_path(map_def)
+        surface = maps.build_background(map_def, path)
+        self.assertEqual(surface.get_size(), (MAP_W, MAP_H))
+        self.assertGreater(path.length, 400)
+        self.assertGreater(maps.track_clearance(map_def), 0)
+
 
 class TestSave(unittest.TestCase):
     """Save data must survive a bad file and a read-only location."""
@@ -382,9 +405,9 @@ class TestSave(unittest.TestCase):
             os.environ[save_module.SAVE_DIR_ENV] = folder
             try:
                 first = SaveData()
-                first.record_run("spiral", "hard", 31, 900, True)
+                first.record_run("some-map", "hard", 31, 900, True)
                 second = SaveData()
-                self.assertEqual(second.best_round("spiral", "hard"), 31)
+                self.assertEqual(second.best_round("some-map", "hard"), 31)
                 self.assertEqual(second.get("wins"), 1)
             finally:
                 del os.environ[save_module.SAVE_DIR_ENV]

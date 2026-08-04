@@ -98,15 +98,22 @@ Two consequences of how towers animate, worth designing around:
 
 The Banana Farm never rotates or fires, so neither rule applies to it.
 
-## 3. Map backgrounds — 2 needed
+## 3. Map backgrounds — all covered
 
 `background_images/<key>.png`, **exactly 960×720**, opaque.
 
 | Map | File | Status |
 |---|---|---|
+| Sprint Track | `sprint.png` | art |
 | Monkey Meadow | `Background.webp` | art |
-| **Switchback** | `switchback.png` | **needed** |
-| **Coil** | `spiral.png` | **needed** |
+| Park Path | `park.png` | art |
+
+Nothing needed here unless you want more maps. **To add one, send the artwork
+and I will trace it** — `tools/trace_map.py` derives where balloons walk from
+the image itself, so the path can never drift off the painted track.
+
+If you want to build one without artwork, the game will paint a background
+from the path instead; see the fallback note below.
 
 The painted track has to line up with where balloons actually walk. Generate
 tracing guides:
