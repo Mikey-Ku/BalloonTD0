@@ -14,7 +14,7 @@ import pygame
 from .. import maps
 from ..config import (
     ACCENT, BERRY, DIFFICULTIES, INK, INK_SOFT, LEAF_LIGHT, PAPER,
-    PAPER_DIM, SCREEN_H, SCREEN_W, SUN, WOOD,
+    SCREEN_H, SCREEN_W, SUN, WOOD,
 )
 from .widgets import Button, CENTER, Slider, draw_text, raised_panel
 
@@ -75,8 +75,8 @@ class Screen:
             draw_text(surface, self.title, (SCREEN_W // 2, 58), 52, PAPER,
                       bold=True, align=CENTER, shadow=True)
         if self.subtitle:
-            draw_text(surface, self.subtitle, (SCREEN_W // 2, 116), 18,
-                      PAPER_DIM, align=CENTER, shadow=True)
+            draw_text(surface, self.subtitle, (SCREEN_W // 2, 116), 19,
+                      PAPER, align=CENTER, shadow=True)
         self.draw_content(surface)
         for slider in self.sliders:
             slider.draw(surface)
@@ -119,16 +119,16 @@ class MenuScreen(Screen):
                 f"{name.name if name else map_key} ({difficulty})"
             )
 
-        box = pygame.Rect(SCREEN_W // 2 - 200, 400, 400, 26 + 22 * len(summary))
+        box = pygame.Rect(SCREEN_W // 2 - 210, 400, 420, 28 + 23 * len(summary))
         raised_panel(surface, box)
         for i, line in enumerate(summary):
-            draw_text(surface, line, (box.centerx, box.y + 12 + i * 22), 15,
-                      INK_SOFT, align=CENTER)
+            draw_text(surface, line, (box.centerx, box.y + 12 + i * 23), 16,
+                      INK, align=CENTER)
 
         draw_text(surface,
                   "Originally an Olin College team project by Hong Zhang, "
                   "Mikey Ku, and Jackson Gamache",
-                  (SCREEN_W // 2, SCREEN_H - 34), 13, PAPER_DIM,
+                  (SCREEN_W // 2, SCREEN_H - 36), 14, PAPER,
                   align=CENTER, shadow=True)
 
     def handle_key(self, key: int) -> str | None:
@@ -197,14 +197,14 @@ class MapSelectScreen(Screen):
             button.selected = key == self.difficulty
             self.buttons.append(button)
 
-        self.rules_y = controls_y + 48
+        self.rules_y = controls_y + 60
         self.buttons.append(
-            Button((SCREEN_W // 2 - 150, controls_y + 68, 300, 44),
+            Button((SCREEN_W // 2 - 150, controls_y + 96, 300, 46),
                    "Start Run", "start", size=20)
         )
         self.buttons.append(
-            Button((SCREEN_W // 2 - 150, controls_y + 118, 300, 34),
-                   "Back", "back", size=15)
+            Button((SCREEN_W // 2 - 150, controls_y + 152, 300, 36),
+                   "Back", "back", size=16)
         )
 
     def thumb(self, key: str) -> pygame.Surface:
@@ -259,8 +259,8 @@ class MapSelectScreen(Screen):
             f"{rules['rounds']} rounds   -   "
             f"balloon health x{rules['hp_scale']:.2f}"
         )
-        draw_text(surface, summary, (SCREEN_W // 2, self.rules_y), 15,
-                  PAPER_DIM, align=CENTER, shadow=True)
+        draw_text(surface, summary, (SCREEN_W // 2, self.rules_y), 16,
+                  PAPER, align=CENTER, shadow=True)
 
 
 class SettingsScreen(Screen):
@@ -299,12 +299,12 @@ class SettingsScreen(Screen):
         """Label the sliders with their current percentages."""
         mid = SCREEN_W // 2
         draw_text(surface, f"Music  {int(self.sliders[0].value * 100)}%",
-                  (mid, 186), 17, PAPER, align=CENTER, shadow=True)
+                  (mid, 186), 19, PAPER, align=CENTER, shadow=True)
         draw_text(surface, f"Sound effects  {int(self.sliders[1].value * 100)}%",
-                  (mid, 270), 17, PAPER, align=CENTER, shadow=True)
+                  (mid, 270), 19, PAPER, align=CENTER, shadow=True)
         if not self.app.save.writable:
             draw_text(surface, "Settings cannot be saved in this environment.",
-                      (mid, 420), 14, PAPER_DIM, align=CENTER, shadow=True)
+                      (mid, 420), 15, PAPER, align=CENTER, shadow=True)
 
 
 class PauseScreen(Screen):
@@ -339,8 +339,8 @@ class PauseScreen(Screen):
             f"${run.money:,}  -  {run.lives} lives  -  {len(run.towers)} towers",
         ]
         for i, line in enumerate(lines):
-            draw_text(surface, line, (SCREEN_W // 2, 452 + i * 24), 16,
-                      PAPER_DIM, align=CENTER, shadow=True)
+            draw_text(surface, line, (SCREEN_W // 2, 452 + i * 26), 17,
+                      PAPER, align=CENTER, shadow=True)
 
 
 class ResultScreen(Screen):
@@ -409,7 +409,7 @@ class ResultScreen(Screen):
             draw_text(surface,
                       f"Top tower: {best.kind.label} ({best.tier_label}) "
                       f"with {best.pops:,} pops",
-                      (SCREEN_W // 2, 444), 15, PAPER_DIM, align=CENTER,
+                      (SCREEN_W // 2, 444), 16, PAPER, align=CENTER,
                       shadow=True)
 
 

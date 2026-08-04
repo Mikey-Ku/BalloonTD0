@@ -141,7 +141,7 @@ class Hud:
         for path in (0, 1):
             upgrade = tower.next_upgrade(path)
             cost = tower.upgrade_cost(path)
-            rect = pygame.Rect(self.rack_rect.x, top + path * 58, width, 50)
+            rect = pygame.Rect(self.rack_rect.x, top + path * 62, width, 56)
 
             if upgrade is None:
                 button = Button(rect, "Path maxed", f"none:{path}", size=15)
@@ -156,10 +156,10 @@ class Hud:
                 button.enabled = self.run.money >= cost
             out.append(button)
 
-        target_rect = pygame.Rect(self.rack_rect.x, top + 122, width - 106, 40)
+        target_rect = pygame.Rect(self.rack_rect.x, top + 130, width - 106, 40)
         out.append(Button(target_rect, f"Target: {tower.targeting}",
                           "targeting", size=15))
-        sell_rect = pygame.Rect(self.rack_rect.right - 100, top + 122, 100, 40)
+        sell_rect = pygame.Rect(self.rack_rect.right - 100, top + 130, 100, 40)
         out.append(Button(sell_rect, f"Sell ${tower.sell_value:,}", "sell",
                           accent=BAD, size=14))
         return out
@@ -516,12 +516,12 @@ class Hud:
         y += 8
         for path in (0, 1):
             names = " > ".join(u.name for u in kind.paths[path])
-            draw_text(surface, f"Path {path + 1}", (info.x + 12, y), 12,
+            draw_text(surface, f"Path {path + 1}", (info.x + 12, y), 13,
                       LEAF_DARK, bold=True)
             y += 15
             for line in _wrap(names, 42):
-                draw_text(surface, line, (info.x + 12, y), 12, INK_SOFT)
-                y += 14
+                draw_text(surface, line, (info.x + 12, y), 13, INK_SOFT)
+                y += 15
             y += 4
 
     def _draw_tower_panel(self, surface: pygame.Surface) -> None:
@@ -546,7 +546,7 @@ class Hud:
             y += 17
 
         draw_text(surface, f"Pops {tower.pops:,}   Earned ${tower.cash_earned:,}",
-                  (top.x + 12, top.bottom - 20), 12, INK_SOFT)
+                  (top.x + 12, top.bottom - 22), 13, INK_SOFT)
 
         for widget in self.panel_buttons:
             widget.draw(surface)
@@ -558,15 +558,15 @@ class Hud:
             face = self.panel_buttons[path].body_rect()
             _, _, text_colour = self.panel_buttons[path].palette()
             for line in _wrap(upgrade.desc, 42)[:1]:
-                draw_text(surface, line, (face.centerx, face.bottom - 17), 11,
+                draw_text(surface, line, (face.centerx, face.bottom - 18), 12,
                           text_colour, align=CENTER)
 
         self._draw_path_overview(surface, tower)
 
         chrome.blit_outlined(
-            surface, "ESC deselect  -  TAB target  -  U / I upgrade",
-            (SIDEBAR_X + SIDEBAR_W // 2, self.detail_rect.bottom + 4), 12,
-            TEXT_WHITE, align=CENTER, thickness=1)
+            surface, "ESC deselect - TAB target - U / I upgrade",
+            (SIDEBAR_X + SIDEBAR_W // 2, self.detail_rect.bottom - 4), 13,
+            TEXT_WHITE, align=CENTER, thickness=2)
 
     def _draw_path_overview(self, surface: pygame.Surface, tower: Tower) -> None:
         """Show both upgrade paths with the purchased tiers filled in.
@@ -576,19 +576,19 @@ class Hud:
         one path reaches its final tier the other is capped, and that shows
         here as greyed pips.
         """
-        box = pygame.Rect(self.rack_rect.x, self.rack_rect.y + 378,
-                          self.rack_rect.width, 128)
+        box = pygame.Rect(self.rack_rect.x, self.rack_rect.y + 382,
+                          self.rack_rect.width, 116)
         raised_panel(surface, box)
 
         draw_text(surface, "Upgrade paths", (box.x + 12, box.y + 8), 14, INK,
                   bold=True)
 
         for path in (0, 1):
-            top = box.y + 32 + path * 46
+            top = box.y + 30 + path * 43
             tier = tower.tiers[path]
             available = tower.can_upgrade(path)
 
-            draw_text(surface, f"Path {path + 1}", (box.x + 12, top), 12,
+            draw_text(surface, f"Path {path + 1}", (box.x + 12, top), 13,
                       LEAF_DARK, bold=True)
 
             for step in range(len(tower.kind.paths[path])):
@@ -610,7 +610,7 @@ class Hud:
                 caption = "capped by the other path"
             else:
                 caption = nxt.name
-            draw_text(surface, caption[:34], (box.x + 12, top + 20), 12,
+            draw_text(surface, caption[:32], (box.x + 12, top + 21), 13,
                       INK_SOFT)
 
     def _draw_hover_tooltip(self, surface: pygame.Surface) -> None:

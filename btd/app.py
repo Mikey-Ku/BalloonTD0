@@ -106,7 +106,7 @@ class App:
         # Warm brown wash rather than a cold slate one, so the menus read as
         # part of the same jungle as the map instead of an overlay on top.
         shade = pygame.Surface((SCREEN_W, SCREEN_H), pygame.SRCALPHA)
-        shade.fill((58, 36, 20, 140))
+        shade.fill((52, 32, 17, 178))
         backdrop.blit(shade, (0, 0))
         self._backdrop = backdrop
         return backdrop
@@ -270,8 +270,8 @@ class App:
         banner.fill((10, 13, 20, 190))
         self.screen.blit(banner, (0, SCREEN_H // 2 - 22))
         draw_text(self.screen, "PAUSED  -  press P to resume",
-                  (MAP_W // 2, SCREEN_H // 2 - 12), 22, (238, 241, 246),
-                  bold=True, align=CENTER)
+                  (MAP_W // 2, SCREEN_H // 2 - 13), 24, (255, 252, 242),
+                  bold=True, align=CENTER, shadow=True)
 
     async def loop(self) -> None:
         """Run the main loop until the window closes.

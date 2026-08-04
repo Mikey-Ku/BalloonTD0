@@ -44,14 +44,24 @@ def draw_text(surface: pygame.Surface, text: str, pos: tuple[int, int],
         colour: Text colour.
         bold: Whether to use the bold face.
         align: ``"left"``, ``"center"``, or ``"right"``.
-        shadow: Draw a soft dark offset behind the text, for legibility over
-            busy map art.
+        shadow: Surround the text with a dark outline, for legibility over
+            busy map art or a blurred backdrop.
 
     Returns:
         The blitted rect.
     """
-    font = assets.font(size, bold=bold)
-    label = font.render(text, True, colour)
+    if shadow:
+        # A real outline, not an offset drop shadow. An offset shadow doubles
+        # every stroke, and at small sizes the copy lands close enough to the
+        # original that the two merge -- which is why the difficulty summary
+        # on the map picker looked struck through. Outlines are cached, so
+        # this ends up as one blit rather than two.
+        label = chrome.outlined_text(text, size, colour,
+                                     thickness=3 if size >= 30 else 2,
+                                     bold=bold)
+    else:
+        label = assets.font(size, bold=bold).render(text, True, colour)
+
     rect = label.get_rect()
     if align == CENTER:
         rect.midtop = pos
@@ -59,11 +69,6 @@ def draw_text(surface: pygame.Surface, text: str, pos: tuple[int, int],
         rect.topright = pos
     else:
         rect.topleft = pos
-
-    if shadow:
-        dark = font.render(text, True, (46, 30, 18))
-        dark.set_alpha(165)
-        surface.blit(dark, (rect.x + 2, rect.y + 2))
 
     surface.blit(label, rect)
     return rect
@@ -194,8 +199,8 @@ class Button:
             draw_text(surface, self.label, (face.centerx, face.y + 6),
                       self.size, text_colour, bold=True, align=CENTER)
             draw_text(surface, self.subtitle,
-                      (face.centerx, face.y + 8 + self.size),
-                      self.size - 4, text_colour, align=CENTER)
+                      (face.centerx, face.y + 7 + self.size),
+                      max(13, self.size - 2), text_colour, align=CENTER)
         else:
             font = assets.font(self.size, bold=True)
             label = font.render(self.label, True, text_colour)
