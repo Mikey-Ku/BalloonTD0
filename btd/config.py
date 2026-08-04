@@ -21,7 +21,10 @@ MAP_SCALE = 1.2
 MAP_W = int(SOURCE_MAP_SIZE[0] * MAP_SCALE)
 MAP_H = int(SOURCE_MAP_SIZE[1] * MAP_SCALE)
 
-SIDEBAR_W = 320
+#: Wider than it needs to be for the controls, on purpose: at 320 the tower
+#: rack forced 13px labels and 34px icons, which were hard to read at a
+#: glance while a round was running.
+SIDEBAR_W = 360
 SCREEN_W = MAP_W + SIDEBAR_W
 SCREEN_H = MAP_H
 

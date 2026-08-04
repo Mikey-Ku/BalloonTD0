@@ -39,6 +39,9 @@ class MapDef:
         grass: Base ground colour for rendered backgrounds.
         track: Track colour for rendered backgrounds.
         track_width: Track width in pixels.
+        clearance: How far a tower must stay from the path centre line. Set
+            it for art-backed maps, where the painted track width has nothing
+            to do with ``track_width``; ``None`` derives a sensible default.
     """
 
     key: str
@@ -51,6 +54,7 @@ class MapDef:
     track: tuple[int, int, int] = (176, 152, 116)
     track_width: int = 46
     decor: tuple[int, int, int] = field(default=(76, 118, 62))
+    clearance: float | None = None
 
 
 MAPS: dict[str, MapDef] = {}
@@ -98,7 +102,50 @@ _add(MapDef(
 ))
 
 
-MAP_ORDER = ("meadow", "switchback", "spiral")
+# Traced from artwork with tools/trace_map.py -- the control points below are
+# the measured centre line of the painted track, not hand-placed guesses.
+_add(MapDef(
+    key="sprint",
+    name="Sprint Track",
+    difficulty="Beginner",
+    background="background_images/sprint.png",
+    clearance=30.0,
+    # Three laps of the oval, one per lane, working outward from lane 1 --
+    # which is what the "1 2 3" markings painted at the start line count.
+    # Balloons enter on the inside lane and leave on the outside, so the
+    # track is long and every tower placed on it gets three passes.
+    control=(
+        (958, 536), (800, 544), (641, 554), (486, 572), (331, 570),
+        (198, 497), (140, 353), (169, 235), (302, 158), (460, 151),
+        (619, 152), (762, 213), (813, 283), (816, 349), (795, 454),
+        (684, 558), (532, 576), (377, 588), (232, 550), (126, 441),
+        (121, 298), (206, 178), (351, 123), (509, 122), (667, 128),
+        (797, 196), (853, 308), (830, 447), (736, 570), (587, 603),
+        (429, 603), (275, 614), (147, 529), (87, 387), (109, 245),
+        (211, 136), (360, 92), (519, 92), (677, 99), (817, 164),
+        (901, 281), (884, 425), (798, 555), (659, 614), (802, 637),
+        (958, 664),
+    ),
+))
+
+_add(MapDef(
+    key="park",
+    name="Park Path",
+    difficulty="Advanced",
+    background="background_images/park.png",
+    clearance=34.0,
+    control=(
+        (800, 4), (801, 130), (692, 174), (587, 105), (465, 73),
+        (341, 95), (238, 167), (172, 270), (158, 395), (188, 515),
+        (265, 612), (377, 670), (486, 676), (606, 640), (679, 545),
+        (580, 524), (465, 573), (345, 544), (270, 448), (263, 324),
+        (333, 221), (451, 182), (481, 267), (382, 328), (373, 438),
+        (486, 476), (579, 393), (704, 385), (831, 384), (958, 386),
+    ),
+))
+
+
+MAP_ORDER = ("meadow", "sprint", "park", "switchback", "spiral")
 
 
 def build_path(map_def: MapDef) -> Path:
@@ -111,6 +158,7 @@ def build_path(map_def: MapDef) -> Path:
         points = load_waypoints_csv(assets.path(map_def.csv), MAP_SCALE)
         return Path(points)
     return Path(catmull_rom(list(map_def.control), samples_per_span=28))
+
 
 
 def art_candidates(key: str) -> list[str]:
@@ -246,9 +294,12 @@ def _darken(colour: tuple[int, int, int], factor: float) -> tuple[int, int, int]
 def track_clearance(map_def: MapDef) -> float:
     """Minimum distance a tower must keep from the track centre line.
 
-    The artwork-backed map keeps the original project's tighter clearance,
-    since its track is painted narrower than the ones rendered here.
+    Art-backed maps declare this explicitly, because how wide their track is
+    painted is unrelated to ``track_width`` -- the Sprint Track's running
+    surface is roughly four times wider than the Meadow's footpath.
     """
+    if map_def.clearance is not None:
+        return map_def.clearance
     if map_def.background:
         return 26.0
     return map_def.track_width * 0.5 + 8.0

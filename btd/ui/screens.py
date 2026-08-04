@@ -140,6 +140,10 @@ class MenuScreen(Screen):
         return None
 
 
+#: Map card size. Cards wrap to a second row rather than shrinking.
+CARD_W, CARD_H = 258, 184
+
+
 class MapSelectScreen(Screen):
     """Map and difficulty picker."""
 
@@ -156,35 +160,51 @@ class MapSelectScreen(Screen):
         self._build()
 
     def _build(self) -> None:
-        """Lay out the map cards, difficulty buttons, and actions."""
+        """Lay out the map cards, difficulty buttons, and actions.
+
+        Cards wrap onto a second row rather than shrinking, so the layout
+        keeps working as maps are added.
+        """
         self.buttons = []
-        card_w, card_h = 280, 224
-        gap = 24
-        total = len(maps.MAP_ORDER) * card_w + (len(maps.MAP_ORDER) - 1) * gap
-        start_x = (SCREEN_W - total) // 2
+        card_w, card_h = CARD_W, CARD_H
+        gap = 16
+        per_row = min(3, len(maps.MAP_ORDER))
+        rows = (len(maps.MAP_ORDER) + per_row - 1) // per_row
+        top = 118 if rows > 1 else 176
 
         self.card_rects = {}
         for i, key in enumerate(maps.MAP_ORDER):
+            row, col = i // per_row, i % per_row
+            in_row = min(per_row, len(maps.MAP_ORDER) - row * per_row)
+            span = in_row * card_w + (in_row - 1) * gap
+            start_x = (SCREEN_W - span) // 2
             self.card_rects[key] = pygame.Rect(
-                start_x + i * (card_w + gap), 150, card_w, card_h
+                start_x + col * (card_w + gap),
+                top + row * (card_h + gap),
+                card_w, card_h,
             )
 
-        diff_w = 150
+        controls_y = top + rows * (card_h + gap) + 8
+
+        diff_w = 140
         diff_total = len(DIFFICULTIES) * diff_w + (len(DIFFICULTIES) - 1) * 12
         diff_x = (SCREEN_W - diff_total) // 2
         for i, key in enumerate(DIFFICULTIES):
             button = Button(
-                (diff_x + i * (diff_w + 12), 424, diff_w, 46),
+                (diff_x + i * (diff_w + 12), controls_y, diff_w, 42),
                 DIFFICULTIES[key]["label"], f"diff:{key}", size=17,
             )
             button.selected = key == self.difficulty
             self.buttons.append(button)
 
+        self.rules_y = controls_y + 48
         self.buttons.append(
-            Button((SCREEN_W // 2 - 150, 552, 300, 54), "Start Run", "start", size=22)
+            Button((SCREEN_W // 2 - 150, controls_y + 68, 300, 44),
+                   "Start Run", "start", size=20)
         )
         self.buttons.append(
-            Button((SCREEN_W // 2 - 150, 618, 300, 42), "Back", "back", size=17)
+            Button((SCREEN_W // 2 - 150, controls_y + 118, 300, 34),
+                   "Back", "back", size=15)
         )
 
     def thumb(self, key: str) -> pygame.Surface:
@@ -195,7 +215,7 @@ class MapSelectScreen(Screen):
         map_def = maps.MAPS[key]
         path = maps.build_path(map_def)
         full = maps.build_background(map_def, path)
-        thumb = pygame.transform.smoothscale(full, (264, 152))
+        thumb = pygame.transform.smoothscale(full, (CARD_W - 16, CARD_H - 58))
         self._thumbs[key] = thumb
         return thumb
 
@@ -224,12 +244,13 @@ class MapSelectScreen(Screen):
             chosen = key == self.map_key
             raised_panel(surface, rect, edge=ACCENT if chosen else WOOD)
             surface.blit(self.thumb(key), (rect.x + 8, rect.y + 8))
-            draw_text(surface, map_def.name, (rect.centerx, rect.y + 168), 18,
-                      INK, bold=True, align=CENTER)
+            draw_text(surface, map_def.name,
+                      (rect.centerx, rect.bottom - 44), 16, INK,
+                      bold=True, align=CENTER)
             best = self.app.save.best_round(key, self.difficulty)
             label = f"{map_def.difficulty}   -   best round {best}" if best \
                 else map_def.difficulty
-            draw_text(surface, label, (rect.centerx, rect.y + 192), 13,
+            draw_text(surface, label, (rect.centerx, rect.bottom - 24), 12,
                       INK_SOFT, align=CENTER)
 
         rules = DIFFICULTIES[self.difficulty]
@@ -238,8 +259,8 @@ class MapSelectScreen(Screen):
             f"{rules['rounds']} rounds   -   "
             f"balloon health x{rules['hp_scale']:.2f}"
         )
-        draw_text(surface, summary, (SCREEN_W // 2, 490), 15, PAPER_DIM,
-                  align=CENTER, shadow=True)
+        draw_text(surface, summary, (SCREEN_W // 2, self.rules_y), 15,
+                  PAPER_DIM, align=CENTER, shadow=True)
 
 
 class SettingsScreen(Screen):

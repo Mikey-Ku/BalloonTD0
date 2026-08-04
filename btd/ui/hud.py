@@ -37,7 +37,7 @@ PAD = 10
 
 #: Tower rack cell geometry.
 CELL_GAP = 8
-CELL_H = 64
+CELL_H = 72
 
 DAMAGE_LABELS = {
     SHARP: "Sharp",
@@ -80,10 +80,10 @@ class Hud:
         row of controls along the bottom.
         """
         self.frame_rect = pygame.Rect(SIDEBAR_X, 0, SIDEBAR_W, SCREEN_H)
-        self.stats_rect = pygame.Rect(SIDEBAR_X + 8, 8, SIDEBAR_W - 16, 76)
-        self.round_rect = pygame.Rect(SIDEBAR_X + 8, 90, SIDEBAR_W - 16, 30)
-        self.rack_rect = pygame.Rect(SIDEBAR_X + 8, 126, SIDEBAR_W - 16, 296)
-        self.detail_rect = pygame.Rect(SIDEBAR_X + 8, 430, SIDEBAR_W - 16, 212)
+        self.stats_rect = pygame.Rect(SIDEBAR_X + 8, 8, SIDEBAR_W - 16, 84)
+        self.round_rect = pygame.Rect(SIDEBAR_X + 8, 98, SIDEBAR_W - 16, 32)
+        self.rack_rect = pygame.Rect(SIDEBAR_X + 8, 136, SIDEBAR_W - 16, 328)
+        self.detail_rect = pygame.Rect(SIDEBAR_X + 8, 472, SIDEBAR_W - 16, 172)
 
         cell_w = (self.rack_rect.width - CELL_GAP * 3) // 2
         for i, key in enumerate(TOWER_ORDER):
@@ -400,15 +400,15 @@ class Hud:
         card = self.stats_rect
         chrome.beveled(surface, card, WOOD_FACE, radius=10, depth=4)
 
-        chrome.coin_icon(surface, (card.x + 26, card.y + 22), 12)
+        chrome.coin_icon(surface, (card.x + 28, card.y + 24), 14)
         chrome.blit_outlined(surface, f"{run.money:,}",
-                             (card.x + 46, card.y + 8), 25, TEXT_GOLD)
+                             (card.x + 52, card.y + 8), 29, TEXT_GOLD)
 
-        chrome.heart_icon(surface, (card.x + 26, card.y + 52), 21)
+        chrome.heart_icon(surface, (card.x + 28, card.y + 56), 24)
         chrome.blit_outlined(surface, f"{run.lives}",
-                             (card.x + 46, card.y + 38), 25, TEXT_WHITE)
+                             (card.x + 52, card.y + 42), 29, TEXT_WHITE)
 
-        lives_bar = pygame.Rect(card.x + 46, card.y + 62, card.width - 60, 6)
+        lives_bar = pygame.Rect(card.x + 52, card.y + 70, card.width - 66, 7)
         progress_bar(surface, lives_bar, run.lives / max(1, run.max_lives),
                      fill=BERRY, back=WOOD_SHADE)
 
@@ -425,9 +425,9 @@ class Hud:
         chrome.plank_strip(surface, strip)
 
         chrome.blit_outlined(surface, f"Round {run.round_number}/{run.max_rounds}",
-                             (strip.x + 8, strip.y + 5), 16, TEXT_WHITE)
-        chrome.blit_outlined(surface, run.wave.describe()[:26],
-                             (strip.right - 8, strip.y + 7), 13, TEXT_GOLD,
+                             (strip.x + 10, strip.y + 6), 17, TEXT_WHITE)
+        chrome.blit_outlined(surface, run.wave.describe()[:28],
+                             (strip.right - 10, strip.y + 8), 14, TEXT_GOLD,
                              align=RIGHT)
 
         if run.round_active:
@@ -455,20 +455,20 @@ class Hud:
                 pygame.draw.rect(surface, chrome.mix(TEXT_GOLD, WOOD_FACE, 0.5),
                                  cell, 2, border_radius=8)
 
-            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (34, 34))
+            icon = pygame.transform.smoothscale(tower_sprite_for_kind(key), (44, 44))
             if not widget.enabled:
                 icon = icon.copy()
                 icon.set_alpha(95)
-            surface.blit(icon, (cell.x + 7, cell.centery - 17))
+            surface.blit(icon, (cell.x + 8, cell.centery - 22))
 
             name_colour = TEXT_WHITE if widget.enabled else (166, 150, 132)
             cost_colour = TEXT_GOLD if widget.enabled else (170, 132, 88)
             # Full label, not a stripped one: dropping "Monkey" left the rack
             # reading "Dart / Sniper / Tack Shooter / Banana Farm".
             chrome.blit_outlined(surface, kind.label,
-                                 (cell.x + 46, cell.y + 12), 13, name_colour)
+                                 (cell.x + 60, cell.y + 14), 15, name_colour)
             chrome.blit_outlined(surface, f"${cost:,}",
-                                 (cell.x + 46, cell.y + 33), 15, cost_colour)
+                                 (cell.x + 60, cell.y + 38), 17, cost_colour)
 
         info = self.detail_rect
         raised_panel(surface, info)
@@ -480,17 +480,16 @@ class Hud:
             lines = [
                 "Pick a tower, then click the map.",
                 "",
-                "1-7   select tower",
+                "1-7  select tower",
                 "SPACE  start round",
                 "F  fast-forward      P  pause",
                 "A  auto-start        ESC  cancel",
                 "",
-                "Click a placed tower for upgrades,",
-                "targeting, and its sell price.",
+                "Click a placed tower to upgrade it.",
             ]
             for i, line in enumerate(lines):
                 draw_text(surface, line, (info.x + 12, info.y + 34 + i * 17),
-                          13, INK_SOFT)
+                          14, INK_SOFT)
             return
 
         self._draw_kind_details(surface, info, key)
