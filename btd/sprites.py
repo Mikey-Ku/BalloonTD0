@@ -14,13 +14,18 @@ Either may be missing. A tower with only a logo uses it in both places, and a
 tower with only an overhead likewise -- so art can land one piece at a time
 without anything breaking.
 
-Sizing is normalised by **content**, not by canvas. The supplied art has the
-subject filling anywhere between 37% and 100% of its image, and some sheets
-are 1024x1024 while others are 1024x1536. Scaling whole canvases to a common
-size would therefore have made the same character appear at wildly different
-sizes depending on how it happened to be exported. Instead each sprite is
-cropped to its visible pixels and scaled so that *that* fits the target box,
-which is what makes the set look consistent.
+Sizing is normalised by **visible area**, not by canvas or bounding box. The
+supplied art has the subject filling anywhere between 37% and 100% of its
+image, across both 1024x1024 and 1024x1536 sheets, so scaling whole canvases
+would have put the same character on screen at very different sizes depending
+only on how it was exported. Fitting the bounding box fixes that but breaks
+on protrusions -- the Sniper's diagonal rifle made its box half again as tall
+as anything else, so the monkey came out half the size. Matching visible pixel
+count ignores thin protrusions and lands every character within a few percent
+of the others.
+
+Source art that does not face up is corrected by :data:`ORIENTATION` rather
+than sent back for re-export.
 """
 
 from __future__ import annotations
@@ -37,9 +42,27 @@ OVERHEAD = "overhead"
 #: box and shrink the character.
 ALPHA_FLOOR = 24
 
-#: Fraction of the target box the artwork fills, leaving a little air so
-#: neighbouring towers do not touch and rotation has room.
-FILL = 0.94
+#: Never let a sprite exceed this fraction of its box, whatever the area
+#: calculation asks for. Stops a long protrusion running off the canvas.
+FILL = 0.98
+
+#: Target for the square root of a sprite's visible pixel count.
+#:
+#: Scaling by the longest edge of the bounding box sounds right and is not:
+#: the Sniper's rifle sticks out diagonally, so its box is 113x170 for a
+#: monkey no bigger than the Bomb Shooter's 109x96. Fitting the box made the
+#: sniper roughly half the size of everything else. Visible *area* ignores
+#: thin protrusions, so bodies come out matched and a rifle is just longer.
+TARGET_AREA_SIDE = 35.0
+
+#: Degrees to rotate each source sprite anticlockwise so it faces up, which is
+#: the orientation the game aims from. Correcting here rather than asking for
+#: re-exports keeps the delivered art usable as-is.
+ORIENTATION: dict[tuple[str, str], float] = {
+    ("bomb", OVERHEAD): 180.0,    # cannon muzzle was pointing down
+    ("ice", OVERHEAD): 180.0,     # facing down
+    ("sniper", OVERHEAD): -45.0,  # rifle was pointing up-left
+}
 
 #: Extra filename stems accepted per tower, so the descriptive names the art
 #: was delivered under work as-is alongside the key-based convention.
@@ -112,22 +135,33 @@ def character(key: str, role: str, size: int) -> pygame.Surface | None:
     if path is None:
         return None
 
-    surface = normalise(assets.image(path), size)
+    surface = normalise(assets.image(path), size,
+                        ORIENTATION.get((key, role), 0.0))
     _CACHE[cache_key] = surface
     return surface
 
 
-def normalise(source: pygame.Surface, size: int) -> pygame.Surface:
-    """Crop to visible content, scale to fit, and centre on a square canvas.
+def visible_area(surface: pygame.Surface) -> int:
+    """Count pixels at or above :data:`ALPHA_FLOOR`."""
+    mask = pygame.mask.from_surface(surface, ALPHA_FLOOR - 1)
+    return mask.count()
+
+
+def normalise(source: pygame.Surface, size: int,
+              rotation: float = 0.0) -> pygame.Surface:
+    """Face it up, scale it to match the set, and centre it on a square canvas.
 
     Args:
         source: The loaded artwork.
         size: Side length of the square canvas returned.
+        rotation: Degrees anticlockwise to turn the source so it faces up.
 
     Returns:
         A new surface of exactly ``size`` x ``size``.
     """
     surface = source.convert_alpha() if pygame.display.get_init() else source
+    if rotation:
+        surface = pygame.transform.rotate(surface, rotation)
 
     # get_bounding_rect is implemented in C, so measuring a 1024x1536 sheet is
     # cheap enough to do at load time rather than in a preprocessing step.
@@ -137,8 +171,12 @@ def normalise(source: pygame.Surface, size: int) -> pygame.Surface:
 
     content = surface.subsurface(box)
 
-    target = size * FILL
-    scale = min(target / box.width, target / box.height)
+    # Scale so visible area matches the set, then clamp so nothing overflows.
+    area = max(1, visible_area(content))
+    by_area = (TARGET_AREA_SIDE * size / 48.0) / (area ** 0.5)
+    by_box = (size * FILL) / max(box.width, box.height)
+    scale = min(by_area, by_box)
+
     scaled = pygame.transform.smoothscale(
         content,
         (max(1, round(box.width * scale)), max(1, round(box.height * scale))),

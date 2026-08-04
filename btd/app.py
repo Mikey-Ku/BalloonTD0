@@ -230,6 +230,8 @@ class App:
             return
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.handle_action(self.hud.handle_click(event.pos, event.button))
+        elif event.type == pygame.MOUSEWHEEL:
+            self.hud.handle_wheel(event.y)
         elif event.type == pygame.KEYDOWN:
             self.handle_action(self.hud.handle_key(event.key))
 

@@ -109,14 +109,23 @@ Two more things the map art should account for:
   cleanly up so the flash lands at the muzzle.
 - The Banana Farm never rotates or fires, so neither rule applies to it.
 
-### Sizing is handled for you
+### Sizing and orientation are handled for you
 
-You do not need to match canvas sizes. Every sprite is **cropped to its
-visible pixels** and scaled so that content fits the target box, so a
-character occupying 37% of its canvas and one filling 100% come out the same
-size on screen. The art delivered so far ranged across both, and across
-1024×1024 and 1024×1536 sheets, and all of it normalises to 45 px on its
-longest edge.
+You do not need to match canvas sizes, padding, or even get the rotation
+right.
+
+**Sizing** matches **visible pixel area**, not canvas and not bounding box.
+Canvas is meaningless — the art delivered so far had subjects filling between
+37% and 100% of their image. Bounding box seems right but breaks on
+protrusions: the Sniper's diagonal rifle made its box half again as tall as
+anything else, so fitting the box rendered the monkey at half the size of the
+others. Matching area ignores thin protrusions, and every tower now lands
+within a few percent of the rest.
+
+**Orientation** is corrected in code. If a sprite does not face up, add an
+entry to `ORIENTATION` in [btd/sprites.py](btd/sprites.py) rather than
+re-exporting — the Bomb Shooter and Ice Monkey arrived facing down, and the
+Sniper's rifle pointed up-left, and all three are fixed with one line each.
 
 Filenames follow `<key>_logo.png` / `<key>_overhead.png`. Descriptive names
 like `Cannon-Overhead.png` or `Ice-Monkey-Logo.png` are also accepted (see

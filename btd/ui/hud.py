@@ -20,7 +20,7 @@ from ..balloons import ENERGY, EXPLOSIVE, SHARP
 from ..config import (
     BAD, BERRY, BUTTON_RED, BUTTON_RED_DARK, INK, INK_SOFT, LEAF_DARK, MAP_H,
     MAP_W, MONEY, PAPER, RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W, SUN,
-    TEXT_GOLD, TEXT_WHITE, WOOD_FACE, WOOD_SHADE,
+    TEXT_GOLD, TEXT_WHITE, WOOD, WOOD_FACE, WOOD_SHADE,
 )
 from ..game import Run, tower_sprite
 from ..towers import FARM, PULSE, Tower
@@ -65,6 +65,8 @@ class Hud:
         self.mouse = (0, 0)
         self.message = ""
         self.message_timer = 0.0
+        self.detail_scroll = 0.0
+        self._detail_overflow = 0.0
 
         self.shop_buttons: list[Button] = []
         self.control_buttons: list[Button] = []
@@ -182,6 +184,7 @@ class Hud:
 
         self.panel_buttons = self._build_panel_buttons()
 
+        previous_hover = self.hover_shop
         self.hover_shop = None
         for button, key in zip(self.shop_buttons, TOWER_ORDER):
             cost = self.run.tower_cost(key)
@@ -190,6 +193,9 @@ class Hud:
             button.update_hover(mouse)
             if button.rect.collidepoint(mouse):
                 self.hover_shop = key
+
+        if self.hover_shop != previous_hover:
+            self.detail_scroll = 0.0
 
         self.start_button.label = (
             "Round in progress" if self.run.round_active else "Start Round"
@@ -282,6 +288,14 @@ class Hud:
 
         self.selected = self.run.tower_at(pos[0], pos[1])
         return None
+
+    def handle_wheel(self, amount: int) -> None:
+        """Scroll the detail panel when the cursor is over it."""
+        if not self.detail_rect.collidepoint(self.mouse):
+            return
+        self.detail_scroll = max(
+            0.0, min(self._detail_overflow, self.detail_scroll - amount * 28)
+        )
 
     def handle_key(self, key: int) -> str | None:
         """Route a keyboard shortcut. Returns an app-level action, if any."""
@@ -497,33 +511,82 @@ class Hud:
 
     def _draw_kind_details(self, surface: pygame.Surface, info: pygame.Rect,
                            key: str) -> None:
-        """Describe an unpurchased tower type."""
-        kind = TOWER_KINDS[key]
-        draw_text(surface, kind.label, (info.x + 12, info.y + 9), 17, INK,
-                  bold=True)
+        """Describe an unpurchased tower type, scrolling if it does not fit.
 
-        y = info.y + 33
-        for line in _wrap(kind.blurb, 40):
-            draw_text(surface, line, (info.x + 12, y), 13, INK_SOFT)
-            y += 16
+        Tower descriptions vary a lot in length -- the Bomb Shooter's blurb
+        plus six stat rows plus two upgrade paths overran the panel and spilled
+        across the sidebar. Rendering to a tall surface and showing a window
+        onto it keeps everything readable at full size instead of forcing the
+        text smaller to fit the worst case.
+        """
+        kind = TOWER_KINDS[key]
+        pad = 12
+        width = info.width - pad * 2
+        page = pygame.Surface((width, 900), pygame.SRCALPHA)
+        page.fill(PAPER)
+
+        draw_text(page, kind.label, (0, 0), 17, INK, bold=True)
+
+        y = 24
+        for line in _wrap(kind.blurb, 38):
+            draw_text(page, line, (0, y), 14, INK_SOFT)
+            y += 17
 
         y += 6
         for label, value in _kind_stats(kind):
-            draw_text(surface, label, (info.x + 12, y), 13, INK_SOFT)
-            draw_text(surface, value, (info.right - 12, y), 13, INK,
-                      bold=True, align=RIGHT)
-            y += 17
+            draw_text(page, label, (0, y), 14, INK_SOFT)
+            draw_text(page, value, (width, y), 14, INK, bold=True, align=RIGHT)
+            y += 18
 
         y += 8
         for path in (0, 1):
-            names = " > ".join(u.name for u in kind.paths[path])
-            draw_text(surface, f"Path {path + 1}", (info.x + 12, y), 13,
-                      LEAF_DARK, bold=True)
-            y += 15
-            for line in _wrap(names, 42):
-                draw_text(surface, line, (info.x + 12, y), 13, INK_SOFT)
-                y += 15
-            y += 4
+            draw_text(page, f"Path {path + 1}", (0, y), 13, LEAF_DARK, bold=True)
+            y += 17
+            for step, upgrade in enumerate(kind.paths[path], 1):
+                draw_text(page, f"{step}. {upgrade.name}", (0, y), 13, INK)
+                y += 16
+                for line in _wrap(upgrade.desc, 40):
+                    draw_text(page, line, (10, y), 12, INK_SOFT)
+                    y += 14
+            y += 8
+
+        self._blit_scrolled(surface, info, page, y, pad)
+
+    def _blit_scrolled(self, surface: pygame.Surface, info: pygame.Rect,
+                       page: pygame.Surface, content_h: int, pad: int) -> None:
+        """Show a scrollable window onto ``page`` inside ``info``."""
+        view_h = info.height - pad * 2
+        self._detail_overflow = max(0.0, content_h - view_h)
+        self.detail_scroll = min(self.detail_scroll, self._detail_overflow)
+        offset = int(self.detail_scroll)
+
+        surface.blit(page, (info.x + pad, info.y + pad),
+                     pygame.Rect(0, offset, page.get_width(), view_h))
+
+        if self._detail_overflow <= 0:
+            return
+
+        # Track and thumb, plus a fade at whichever edge has more to show.
+        track = pygame.Rect(info.right - 8, info.y + pad, 4, view_h)
+        pygame.draw.rect(surface, chrome.mix(PAPER, WOOD_SHADE, 0.25), track,
+                         border_radius=2)
+        span = view_h / (content_h or 1)
+        thumb_h = max(24, int(view_h * span))
+        travel = view_h - thumb_h
+        thumb_y = track.y + int(travel * (offset / self._detail_overflow))
+        pygame.draw.rect(surface, WOOD, (track.x, thumb_y, 4, thumb_h),
+                         border_radius=2)
+
+        for at_top, edge_y in ((True, info.y + pad), (False, info.bottom - pad - 12)):
+            showing = offset > 2 if at_top else offset < self._detail_overflow - 2
+            if not showing:
+                continue
+            fade = pygame.Surface((info.width - pad * 2 - 6, 12), pygame.SRCALPHA)
+            for i in range(12):
+                a = int(190 * ((12 - i) / 12 if at_top else (i + 1) / 12))
+                pygame.draw.line(fade, (*PAPER, a), (0, i),
+                                 (fade.get_width(), i))
+            surface.blit(fade, (info.x + pad, edge_y))
 
     def _draw_tower_panel(self, surface: pygame.Surface) -> None:
         """Draw the inspector for the currently selected tower."""
