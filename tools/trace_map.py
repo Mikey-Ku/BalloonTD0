@@ -35,6 +35,8 @@ from PIL import Image, ImageDraw
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+from btd.path import catmull_rom  # noqa: E402
+
 OUT_DIR = os.path.join(ROOT, "tools", "map_export")
 
 #: Dijkstra runs at half resolution; the corridor is far wider than 2 px and
@@ -293,6 +295,39 @@ def build_laps(loop: list[tuple[float, float]], lanes: list[list],
     return out
 
 
+def densify(a: tuple[float, float], b: tuple[float, float],
+            step: float = 4.0) -> list[tuple[float, float]]:
+    """Fill in points along a straight segment.
+
+    Straight runs would otherwise be two endpoints with a void between them,
+    which both starves the control-point resampling and makes the fidelity
+    check report a huge false drift over the gap.
+    """
+    count = max(1, int(math.dist(a, b) / step))
+    return [(a[0] + (b[0] - a[0]) * i / count,
+             a[1] + (b[1] - a[1]) * i / count) for i in range(count + 1)]
+
+
+def fidelity(controls: list[tuple[int, int]],
+             route: list[tuple[float, float]]) -> float:
+    """Worst distance from the resulting spline back to the traced route.
+
+    The game rebuilds a Catmull-Rom curve from the control points, so what
+    matters is not how well the *points* sit on the track but how well the
+    *curve through them* does. Too few points and the spline chords across a
+    tight turn, which is exactly what put balloons on the grass in the Park
+    Path's spiral.
+    """
+    curve = catmull_rom([(float(x), float(y)) for x, y in controls],
+                        samples_per_span=28)
+    step = max(1, len(route) // 900)
+    sampled = route[::step]
+    worst = 0.0
+    for point in curve[::3]:
+        worst = max(worst, min(math.dist(point, r) for r in sampled))
+    return worst
+
+
 def simplify(points: list[tuple[float, float]], count: int) -> list[tuple[int, int]]:
     """Resample a dense route down to ``count`` evenly spaced control points."""
     if len(points) <= count:
@@ -354,7 +389,8 @@ GUIDES = {
         # edge measure 552 and 648.
         "entry": (958, 554),
         "exit": (958, 652),
-        "controls": 60,
+        "controls": 90,
+        "smoothing": 2,
     },
     "park": {
         "kind": "stone",
@@ -365,7 +401,12 @@ GUIDES = {
         # Only three guides: the spiral's own walls force the route, so the
         # search does not need telling how to get round it.
         "points": [(800, 4), (470, 660), (958, 386)],
-        "controls": 30,
+        # The spiral turns tightly enough that control-point spacing decides
+        # whether the curve is followed or cut across. At 30 the spline strayed
+        # 23px from the traced route -- half the width of a path that is only
+        # 76px wide -- so balloons visibly clipped the corners onto the grass.
+        "controls": 120,
+        "smoothing": 3,
     },
 }
 
@@ -400,15 +441,23 @@ def trace(key: str, overlay: bool) -> None:
         laps = build_laps(None, rings)
         # Spurs join as straight runs: the whole fan at the start line is
         # track, so routing them costs nothing.
-        full = [spec["entry"]] + laps + [spec["exit"]]
+        full = (densify(spec["entry"], laps[0])
+                + laps
+                + densify(laps[-1], spec["exit"]))
     else:
         full = run_guides(spec["points"])
-    passes = 2 if "stadium" in spec else 10
-    controls = simplify(smooth(full, passes=passes), spec["controls"])
+    controls = simplify(smooth(full, passes=spec.get("smoothing", 6)),
+                        spec["controls"])
 
     length = sum(math.dist(a, b) for a, b in zip(full, full[1:]))
+    drift = fidelity(controls, full)
     print(f"\n{key}: {len(full)} traced px, path length {length:.0f}px, "
           f"track width ~{span * SCALE * 2:.0f}px")
+    print(f"    {len(controls)} control points, worst drift from the traced "
+          f"route {drift:.1f}px")
+    if drift > span * SCALE * 0.45:
+        print("    WARNING: that is a large share of the track half-width; "
+              "raise 'controls'")
     print("    control=(")
     for i in range(0, len(controls), 4):
         row = ", ".join(f"({x}, {y})" for x, y in controls[i:i + 4])
