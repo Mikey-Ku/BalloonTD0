@@ -149,6 +149,31 @@ def edge_distance(mask: np.ndarray, limit: int = 70) -> np.ndarray:
     return dist
 
 
+def blur(field: np.ndarray, passes: int) -> np.ndarray:
+    """Soften a distance field with repeated box averaging.
+
+    The route is steered toward wherever the track is widest, which makes it
+    swerve around anything that dents the edge -- and the artwork paints grass
+    tufts and leaves across the path, each of which reads as a dent. Softening
+    the field first ignores features that small while leaving the corridor's
+    real shape intact.
+
+    Blurring the *weight* rather than closing the *mask* matters: a
+    morphological close large enough to swallow a tuft also welds neighbouring
+    arms of the spiral together, and the search promptly cut a third off the
+    route through the join.
+    """
+    out = field.astype(np.float32)
+    for _ in range(passes):
+        total = out.copy()
+        total[1:, :] += out[:-1, :]
+        total[:-1, :] += out[1:, :]
+        total[:, 1:] += out[:, :-1]
+        total[:, :-1] += out[:, 1:]
+        out = total / 5.0
+    return out
+
+
 def snap(mask: np.ndarray, point: tuple[int, int]) -> tuple[int, int]:
     """Move a guide point onto the nearest track pixel."""
     x, y = point
@@ -406,7 +431,10 @@ GUIDES = {
         # 23px from the traced route -- half the width of a path that is only
         # 76px wide -- so balloons visibly clipped the corners onto the grass.
         "controls": 120,
-        "smoothing": 3,
+        "smoothing": 5,
+        # Grass and leaves are painted across the stone in places; without
+        # this the route weaves around each one.
+        "blur": 16,
     },
 }
 
@@ -422,9 +450,10 @@ def trace(key: str, overlay: bool) -> None:
     mask = mask_full[::SCALE, ::SCALE]
     dist = edge_distance(mask)
     span = max(1.0, float(dist.max()))
+    smoothed = blur(dist, spec.get("blur", 0))
 
     # Strong centre preference: cost rises sharply toward the track edges.
-    weight = 1.0 + 24.0 * (1.0 - dist / span) ** 3
+    weight = 1.0 + 24.0 * (1.0 - smoothed / span) ** 3
     weight[~mask] = np.inf
 
     def run_guides(points):
