@@ -346,8 +346,14 @@ GUIDES = {
         # Innermost lane first, working outward -- what the "1 2 3" markings
         # painted at the start line count.
         "lane_radii": [191.5, 241.5, 290.0],
-        "entry": (958, 536),
-        "exit": (958, 664),
+        # Entry and exit sit at exactly the y of the lane they join -- lane 1
+        # starts at c_y + 191.5 = 554, lane 3 at c_y + 290 = 652.5 -- so both
+        # spurs run dead level. Picking them by eye left a 3 degree tilt, and
+        # balloons visibly drifted across the lane markings on the way in.
+        # These also land in the painted spur lanes, whose centres at the right
+        # edge measure 552 and 648.
+        "entry": (958, 554),
+        "exit": (958, 652),
         "controls": 60,
     },
     "park": {

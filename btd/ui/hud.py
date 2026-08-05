@@ -22,7 +22,7 @@ from ..config import (
     MAP_W, MONEY, PAPER, RANGE_BAD, RANGE_OK, SCREEN_H, SIDEBAR_W, SUN,
     TEXT_GOLD, TEXT_WHITE, WOOD, WOOD_FACE, WOOD_SHADE,
 )
-from ..game import Run, tower_sprite
+from ..game import TOWER_SPRITE_SIZE, Run, tower_sprite
 from ..towers import FARM, PULSE, Tower
 from ..towers import KINDS as TOWER_KINDS
 from ..towers import TOWER_ORDER
@@ -348,7 +348,8 @@ class Hud:
             self._draw_range(surface, self.selected.x, self.selected.y,
                              self.selected.range, (120, 180, 255))
             pygame.draw.circle(surface, (255, 226, 130),
-                               (int(self.selected.x), int(self.selected.y)), 22, 2)
+                               (int(self.selected.x), int(self.selected.y)),
+                               TOWER_SPRITE_SIZE // 2 - 4, 2)
 
         if not self.shop_selection:
             return
@@ -366,16 +367,18 @@ class Hud:
             self._draw_range(surface, m_x, m_y, kind.range,
                              RANGE_OK if ok else RANGE_BAD)
 
-        ghost = tower_sprite_for_kind(self.shop_selection)
-        ghost = ghost.copy()
+        # The overhead, not the shop portrait: the preview should be exactly
+        # what lands on the map, including its size and facing.
+        ghost = tower_sprite(self.shop_selection).copy()
         ghost.set_alpha(190 if ok else 90)
         surface.blit(ghost, ghost.get_rect(center=(m_x, m_y)))
 
         if not ok:
-            pygame.draw.line(surface, RANGE_BAD, (m_x - 13, m_y - 13),
-                             (m_x + 13, m_y + 13), 3)
-            pygame.draw.line(surface, RANGE_BAD, (m_x + 13, m_y - 13),
-                             (m_x - 13, m_y + 13), 3)
+            arm = TOWER_SPRITE_SIZE // 3
+            pygame.draw.line(surface, RANGE_BAD, (m_x - arm, m_y - arm),
+                             (m_x + arm, m_y + arm), 4)
+            pygame.draw.line(surface, RANGE_BAD, (m_x + arm, m_y - arm),
+                             (m_x - arm, m_y + arm), 4)
 
     @staticmethod
     def _draw_range(surface: pygame.Surface, x: float, y: float,
@@ -706,19 +709,7 @@ def tower_sprite_for_kind(key: str) -> pygame.Surface:
     art = sprites.character(key, sprites.LOGO, ICON_SIZE)
     if art is not None:
         return art
-    return tower_sprite(_probe(key))
-
-
-_PROBES: dict[str, Tower] = {}
-
-
-def _probe(key: str) -> Tower:
-    """A throwaway tower instance, used only to render a glyph fallback."""
-    probe = _PROBES.get(key)
-    if probe is None:
-        probe = Tower(TOWER_KINDS[key], 0, 0)
-        _PROBES[key] = probe
-    return probe
+    return tower_sprite(key)
 
 
 def _kind_stats(kind) -> list[tuple[str, str]]:

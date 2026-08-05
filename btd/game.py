@@ -505,7 +505,7 @@ class Run:
             pos_y += math.sin(radians) * kick
 
         pos = (int(pos_x), int(pos_y))
-        sprite = tower_sprite(tower)
+        sprite = tower_sprite(tower.kind.key)
         if sprites.has_overhead(tower.kind.key) and tower.kind.mode != FARM:
             # Only real top-down art is rotated. Spinning a portrait logo
             # because no overhead was supplied looks broken, so it stays put.
@@ -515,8 +515,9 @@ class Run:
         # Muzzle flash on the frame the shot leaves.
         if tower.fire_anim > 0.75 and tower.kind.mode != FARM:
             radians = math.radians(tower.angle)
-            tip = (int(pos_x + math.cos(radians) * 18),
-                   int(pos_y - math.sin(radians) * 18))
+            reach = TOWER_SPRITE_SIZE * 0.38
+            tip = (int(pos_x + math.cos(radians) * reach),
+                   int(pos_y - math.sin(radians) * reach))
             flash = int(3 + 3 * (tower.fire_anim - 0.75) * 4)
             pygame.draw.circle(surface, (255, 246, 206), tip, flash)
 
@@ -525,7 +526,7 @@ class Run:
             for i in range(total):
                 pygame.draw.circle(
                     surface, (255, 226, 130),
-                    (pos[0] - 9 + i * 5, pos[1] + 17), 2,
+                    (pos[0] - 9 + i * 5, pos[1] + 23), 2,
                 )
 
     @staticmethod
@@ -547,24 +548,28 @@ _TOWER_SPRITES: dict[str, pygame.Surface] = {}
 
 
 #: On-screen size of a tower on the map, in pixels.
-TOWER_SPRITE_SIZE = 48
+#:
+#: The area target in btd.sprites scales with this, so raising it enlarges the
+#: characters themselves rather than just padding the canvas. At 48 they read
+#: as small next to the balloons and left a lot of empty space around each
+#: tower footprint.
+TOWER_SPRITE_SIZE = 62
 
 
-def tower_sprite(tower: Tower) -> pygame.Surface:
-    """Return the cached map sprite for a tower.
+def tower_sprite(key: str) -> pygame.Surface:
+    """Return the cached map sprite for a tower type.
 
     Prefers the top-down overhead art, falls back to the portrait logo, and
     finally to a drawn glyph. See :mod:`btd.sprites`.
     """
-    key = tower.kind.key
     cached = _TOWER_SPRITES.get(key)
     if cached is not None:
         return cached
 
+    kind = TOWER_KINDS[key]
     art = sprites.character(key, sprites.OVERHEAD, TOWER_SPRITE_SIZE)
     if art is None:
-        art = _draw_tower_glyph(TOWER_SPRITE_SIZE, tower.kind.colour,
-                               tower.kind.mode)
+        art = _draw_tower_glyph(TOWER_SPRITE_SIZE, kind.colour, kind.mode)
 
     _TOWER_SPRITES[key] = art
     return art
