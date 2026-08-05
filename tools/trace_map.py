@@ -283,20 +283,18 @@ def stadium(c_x: float, c_y: float, half: float, radius: float,
     return ring
 
 
-def build_laps(loop: list[tuple[float, float]], lanes: list[list],
+def build_laps(rings: list[list[tuple[float, float]]],
                blend: float = 0.16) -> list[tuple[float, float]]:
     """Walk one lap per lane, easing between lanes on the home straight.
 
     Args:
-        loop: Unused; kept so the caller reads symmetrically with the rings.
-        lanes: One closed, phase-aligned, equal-length ring per lap.
+        rings: One closed, equal-length ring per lap, all sharing a start
+            point so a blend between two of them pairs matching positions.
         blend: Fraction of a lap spent easing into the next lane.
 
     Returns:
-        A single open path covering ``len(lanes)`` laps.
+        A single open path covering ``len(rings)`` laps.
     """
-    rings = lanes
-
     out: list[tuple[float, float]] = []
     steps = len(rings[0])
     for lap, ring in enumerate(rings):
@@ -467,7 +465,7 @@ def trace(key: str, overlay: bool) -> None:
     if "stadium" in spec:
         rings = [stadium(radius=r, **spec["stadium"])
                  for r in spec["lane_radii"]]
-        laps = build_laps(None, rings)
+        laps = build_laps(rings)
         # Spurs join as straight runs: the whole fan at the start line is
         # track, so routing them costs nothing.
         full = (densify(spec["entry"], laps[0])

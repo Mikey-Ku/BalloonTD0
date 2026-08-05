@@ -64,11 +64,12 @@ btd/
   game.py            the simulation: one run on one map
   effects.py         particles, floating text, screen shake
   audio.py           music plus synthesised sound effects
+  sprites.py         character art: logos, overheads, size normalisation
   save.py            settings and records
   app.py             window, state machine, main loop
-  ui/                widgets, in-game HUD, full screens
-tools/               asset reporting and map export helpers
-tests/               115 unit and integration tests
+  ui/                widgets, woodwork chrome, in-game HUD, full screens
+tools/               map tracing, asset reporting, image optimisation
+tests/               117 unit and integration tests
 ```
 
 Three decisions shape most of the code:
@@ -89,6 +90,16 @@ and consumed in whole 1/60 s ticks. Fast-forward runs more ticks per frame
 rather than raising the frame-rate cap, so 3× is exactly 3× and a 144 Hz
 display plays identically to a 60 Hz one. There are tests asserting that ten
 0.1 s frames produce the same state as a hundred 0.01 s frames.
+
+**Where balloons walk is measured from the artwork, not hand-placed.**
+`tools/trace_map.py` classifies track pixels by colour, distance-transforms
+the mask so every pixel knows how far it is from the track edge, and runs a
+weighted Dijkstra search that hugs the centre line. It reports how far the
+resulting curve strays from the traced route and warns if that becomes a
+significant share of the track width, so a map cannot ship cutting corners.
+The Sprint Track is a special case: a running track is a stadium curve by
+construction, so its three lanes are generated analytically from measured
+parameters rather than traced.
 
 ### Development
 
@@ -116,7 +127,7 @@ a `gh-pages` branch to publish.
 
 `pygbag.ini` controls what is left out of the bundle — the docs site, dev
 tooling, tests, and the soundtrack. Without those exclusions the bundle is
-40 MB; with them it is 1.4 MB.
+40 MB; with them it is 2.3 MB.
 
 > **Not yet verified end to end.** The bundle builds correctly and contains
 > the right files, but it has only been loaded in a sandboxed browser where
