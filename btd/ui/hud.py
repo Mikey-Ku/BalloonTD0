@@ -40,6 +40,10 @@ PAD = 10
 CELL_GAP = 8
 CELL_H = 72
 
+#: Selected-tower panel: height above the stat list, and per-row height.
+HEADER_H = 58
+STAT_ROW_H = 18
+
 DAMAGE_LABELS = {
     SHARP: "Sharp",
     EXPLOSIVE: "Explosive",
@@ -68,6 +72,7 @@ class Hud:
         self.detail_scroll = 0.0
         self._detail_overflow = 0.0
 
+        self.inspector: dict | None = None
         self.shop_buttons: list[Button] = []
         self.control_buttons: list[Button] = []
         self.panel_buttons: list[Button] = []
@@ -131,20 +136,52 @@ class Hud:
             self.menu_button,
         ]
 
+    def _inspector_layout(self, tower: Tower) -> dict:
+        """Rects for the selected-tower panel, sized to its content.
+
+        The stat list runs from one row (Banana Farm) to eight (a Bomb Shooter
+        with blast, MOAB bonus and camo), so a fixed-height panel either
+        wasted space or overlapped itself. Everything below the info card is
+        positioned from its actual bottom, and the upgrade-path summary takes
+        whatever is left -- or is dropped when there is not enough for it.
+        """
+        rows = len(_tower_stats(tower))
+        x, width = self.rack_rect.x, self.rack_rect.width
+        y = self.rack_rect.y
+
+        info = pygame.Rect(x, y, width, HEADER_H + rows * STAT_ROW_H + 24)
+        y = info.bottom + 8
+
+        upgrades = []
+        for _ in range(2):
+            upgrades.append(pygame.Rect(x, y, width, 54))
+            y += 58
+
+        actions = pygame.Rect(x, y, width, 38)
+        y = actions.bottom + 8
+
+        # Leave the run controls their row at the bottom of the sidebar.
+        spare = (SCREEN_H - 74) - y
+        paths = pygame.Rect(x, y, width, min(120, spare)) if spare >= 88 else None
+        return {"info": info, "upgrades": upgrades, "actions": actions,
+                "paths": paths}
+
     def _build_panel_buttons(self) -> list[Button]:
         """Create buttons for the selected-tower inspector."""
         if self.selected is None:
+            self.inspector = None
             return []
 
+        self.inspector = self._inspector_layout(self.selected)
+
         tower = self.selected
-        top = self.rack_rect.y + 206
-        width = self.rack_rect.width
+        layout = self.inspector
         out: list[Button] = []
 
         for path in (0, 1):
             upgrade = tower.next_upgrade(path)
             cost = tower.upgrade_cost(path)
-            rect = pygame.Rect(self.rack_rect.x, top + path * 62, width, 56)
+            rect = layout["upgrades"][path]
 
             if upgrade is None:
                 button = Button(rect, "Path maxed", f"none:{path}", size=15)
@@ -159,11 +196,12 @@ class Hud:
                 button.enabled = self.run.money >= cost
             out.append(button)
 
-        target_rect = pygame.Rect(self.rack_rect.x, top + 130, width - 106, 40)
-        out.append(Button(target_rect, f"Target: {tower.targeting}",
-                          "targeting", size=15))
-        sell_rect = pygame.Rect(self.rack_rect.right - 100, top + 130, 100, 40)
-        out.append(Button(sell_rect, f"Sell ${tower.sell_value:,}", "sell",
+        actions = layout["actions"]
+        out.append(Button((actions.x, actions.y, actions.width - 106,
+                           actions.height),
+                          f"Target: {tower.targeting}", "targeting", size=15))
+        out.append(Button((actions.right - 100, actions.y, 100, actions.height),
+                          f"Sell ${tower.sell_value:,}", "sell",
                           accent=BAD, size=14))
         return out
 
@@ -594,26 +632,38 @@ class Hud:
     def _draw_tower_panel(self, surface: pygame.Surface) -> None:
         """Draw the inspector for the currently selected tower."""
         tower = self.selected
-        top = pygame.Rect(self.rack_rect.x, self.rack_rect.y,
-                          self.rack_rect.width, 196)
+        layout = self.inspector
+        if layout is None:
+            return
+
+        top = layout["info"]
         raised_panel(surface, top)
 
+        # Icon sits in its own column so the tier label cannot ride over it.
         icon = tower_sprite_for_kind(tower.kind.key)
-        surface.blit(icon, (top.x + 11, top.y + 9))
-        draw_text(surface, tower.kind.label, (top.x + 57, top.y + 10), 17, INK,
+        icon = pygame.transform.smoothscale(icon, (40, 40))
+        surface.blit(icon, (top.x + 10, top.y + 9))
+        text_x = top.x + 58
+        draw_text(surface, tower.kind.label, (text_x, top.y + 10), 17, INK,
                   bold=True)
-        draw_text(surface, f"Tier {tower.tier_label}", (top.x + 57, top.y + 30),
+        draw_text(surface, f"Tier {tower.tier_label}", (text_x, top.y + 31),
                   13, LEAF_DARK, bold=True)
 
-        y = top.y + 56
+        y = top.y + HEADER_H
         for label, value in _tower_stats(tower):
-            draw_text(surface, label, (top.x + 12, y), 13, INK_SOFT)
-            draw_text(surface, value, (top.right - 12, y), 13, INK,
+            draw_text(surface, label, (top.x + 12, y), 14, INK_SOFT)
+            draw_text(surface, value, (top.right - 12, y), 14, INK,
                       bold=True, align=RIGHT)
-            y += 17
+            y += STAT_ROW_H
 
-        draw_text(surface, f"Pops {tower.pops:,}   Earned ${tower.cash_earned:,}",
-                  (top.x + 12, top.bottom - 22), 13, INK_SOFT)
+        # Flows after the stats rather than being pinned to the panel edge,
+        # which is what used to collide with the last row.
+        pygame.draw.line(surface, chrome.mix(PAPER, WOOD_SHADE, 0.35),
+                         (top.x + 12, y + 2), (top.right - 12, y + 2))
+        draw_text(surface, f"Pops {tower.pops:,}", (top.x + 12, y + 6), 13,
+                  INK_SOFT)
+        draw_text(surface, f"Earned ${tower.cash_earned:,}",
+                  (top.right - 12, y + 6), 13, INK_SOFT, align=RIGHT)
 
         for widget in self.panel_buttons:
             widget.draw(surface)
@@ -624,18 +674,15 @@ class Hud:
                 continue
             face = self.panel_buttons[path].body_rect()
             _, _, text_colour = self.panel_buttons[path].palette()
-            for line in _wrap(upgrade.desc, 42)[:1]:
+            for line in _wrap(upgrade.desc, 44)[:1]:
                 draw_text(surface, line, (face.centerx, face.bottom - 18), 12,
                           text_colour, align=CENTER)
 
-        self._draw_path_overview(surface, tower)
+        if layout["paths"] is not None:
+            self._draw_path_overview(surface, tower, layout["paths"])
 
-        chrome.blit_outlined(
-            surface, "ESC deselect - TAB target - U / I upgrade",
-            (SIDEBAR_X + SIDEBAR_W // 2, self.detail_rect.bottom - 4), 13,
-            TEXT_WHITE, align=CENTER, thickness=2)
-
-    def _draw_path_overview(self, surface: pygame.Surface, tower: Tower) -> None:
+    def _draw_path_overview(self, surface: pygame.Surface, tower: Tower,
+                            box: pygame.Rect) -> None:
         """Show both upgrade paths with the purchased tiers filled in.
 
         Occupies the space below the action buttons, which was otherwise a
@@ -643,8 +690,6 @@ class Hud:
         one path reaches its final tier the other is capped, and that shows
         here as greyed pips.
         """
-        box = pygame.Rect(self.rack_rect.x, self.rack_rect.y + 382,
-                          self.rack_rect.width, 116)
         raised_panel(surface, box)
 
         draw_text(surface, "Upgrade paths", (box.x + 12, box.y + 8), 14, INK,
