@@ -1,0 +1,78 @@
+name: pages
+
+# Publishes the playable browser build.
+#
+# This replaces what used to be here: the original course project's generated
+# Quarto site, committed under docs/ and served straight off the branch. That
+# site described a different game and sent readers to a different repository,
+# so rather than update 17 MB of generated HTML, the page is now the thing
+# people actually want, which is the game.
+#
+# REQUIRES A ONE-TIME REPO SETTING: Settings > Pages > Source = "GitHub
+# Actions". Until that is switched over from "Deploy from a branch", this
+# workflow runs and uploads but nothing is served, because the branch source
+# still points at the deleted docs/ folder.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a running deploy: a half-finished one is a broken page, which
+# is worse than a slightly stale one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt pygbag
+
+      - name: Build the WebAssembly bundle
+        # This works because the loop in btd/app.py is async and yields once a
+        # frame; pygbag needs an awaitable entry point that hands control back
+        # to the browser. What is left out of the bundle is pygbag.ini's job.
+        run: python -m pygbag --build --title "Balloon TD" .
+
+      - name: Verify the bundle was actually produced
+        # pygbag exits 0 even when packaging fails, so a green step here would
+        # otherwise prove nothing and we would deploy an empty directory over
+        # a working page.
+        run: |
+          test -f build/web/index.html || { echo "::error::no index.html"; exit 1; }
+          apk=$(ls -1 build/web/*.apk 2>/dev/null | head -1)
+          test -n "$apk" || { echo "::error::no .apk produced"; exit 1; }
+          size=$(stat -c%s "$apk")
+          echo "bundle: $apk ($size bytes)"
+          # A bundle that packs no game files still produces a small .apk.
+          # 1 MB is comfortably below the real ~2.3 MB and far above empty.
+          test "$size" -gt 1000000 || { echo "::error::.apk suspiciously small"; exit 1; }
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

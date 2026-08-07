@@ -122,18 +122,28 @@ python tools/export_maps.py
 ```
 
 Builds with [pygbag](https://github.com/pygame-web/pygbag) into `build/web/`
-and serves it at `http://localhost:8000`. Push the contents of `build/web/` to
-a `gh-pages` branch to publish.
+and serves it at `http://localhost:8000`. This works because the loop in
+`btd/app.py` is async and yields once a frame, which is what pygbag needs to
+hand control back to the browser.
 
-`pygbag.ini` controls what is left out of the bundle — the docs site, dev
-tooling, tests, and the soundtrack. Without those exclusions the bundle is
-40 MB; with them it is 2.3 MB.
+`pygbag.ini` controls what is left out of the bundle: dev tooling, tests, and
+the soundtrack. Without those exclusions the bundle is 40 MB; with them it is
+2.3 MB.
 
-> **Not yet verified end to end.** The bundle builds correctly and contains
-> the right files, but it has only been loaded in a sandboxed browser where
-> the pygbag runtime stalls partway through fetching its WASM wheels. Open
-> `http://localhost:8000` in a normal browser and confirm it runs before
-> publishing.
+`.github/workflows/pages.yml` builds and publishes it on every push to `main`,
+once **Settings > Pages > Source** is set to **GitHub Actions**.
+
+> **The bundle is verified, running it in a browser is not.** Every build check
+> passes: `index.html` is produced, the `.apk` is 2.3 MB, and it contains the
+> right files. But it has only ever been loaded inside a sandboxed browser,
+> where the pygbag runtime reaches
+> `https://pygame-web.github.io/cdn/index-0.9.3-cp312.json` (HTTP 200), then
+> makes no further requests and sits at "Loading, please wait" with a 1x1
+> canvas. That is consistent with the follow-up WASM wheel downloads being
+> blocked by the sandbox, but it has not been proven. **Open
+> `http://localhost:8000` in an ordinary browser and confirm it plays before
+> pointing anyone at the published page.** If it stalls there too, check the
+> console for a failed fetch to `pygame-web.github.io`.
 
 ---
 
