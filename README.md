@@ -168,7 +168,7 @@ tower and balloon systems, waves, UI, and tooling were rewritten afterwards.
 
 Inspired by Bloons TD by Ninja Kiwi. Built with [Pygame](https://www.pygame.org/).
 
-The original project shipped with a music track ripped from Spotify. It has been
-removed, so `soundtrack/` is empty and the game runs silently until you add
-something you hold the rights to. Music loading is a directory scan, so dropping
-a file in is all it takes. See [soundtrack/README.md](soundtrack/README.md).
+> **Note:** the file in `soundtrack/` is a Spotify rip inherited from the
+> original project and should be replaced with a licensed or public-domain
+> track before this repository is made public. Music loading is a directory
+> scan, so swapping the file is all that is required.

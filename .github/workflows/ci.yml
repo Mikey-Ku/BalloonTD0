@@ -44,10 +44,14 @@ jobs:
           import pygame
           pygame.init()
           from btd import assets, audio
-          # Music is optional by design: soundtrack/ ships empty because the
-          # original track was an unlicensed rip. Silence is a supported state,
-          # so assert it stays a clean no-op rather than an exception on launch.
-          assert assets.find_music() is None or isinstance(assets.find_music(), str)
+          # find_music() scans soundtrack/ rather than naming a file, so both
+          # states are supported: a track present, or none at all. Whichever it
+          # is, start_music() has to be a clean no-op rather than an exception
+          # on launch, since swapping or removing the track is meant to need no
+          # code change. Asserting only the current state would let the other
+          # path rot unnoticed.
+          track = assets.find_music()
+          assert track is None or isinstance(track, str)
           pygame.mixer.init()
           a = audio.Audio()
           a.start_music()
