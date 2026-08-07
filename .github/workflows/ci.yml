@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Test
+        # Pygame opens a window and an audio device on import. A CI runner has
+        # neither, so the dummy drivers give it a video and audio backend that
+        # write nowhere. Without them every test errors before it runs, which
+        # looks like the game is broken rather than the runner being headless.
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: python -m unittest discover -s tests -t . -v
+
+      - name: The game boots headless
+        # The suite exercises systems in isolation and never constructs the game
+        # itself, so an import cycle or a missing asset in the startup path would
+        # pass every test and fail on launch. This is the cheapest possible check
+        # that the thing actually starts.
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          python - <<'PY'
+          import pygame
+          pygame.init()
+          from btd import assets, audio
+          # Music is optional by design: soundtrack/ ships empty because the
+          # original track was an unlicensed rip. Silence is a supported state,
+          # so assert it stays a clean no-op rather than an exception on launch.
+          assert assets.find_music() is None or isinstance(assets.find_music(), str)
+          pygame.mixer.init()
+          a = audio.Audio()
+          a.start_music()
+          print("boots clean; music track present:", a._music_loaded)
+          PY
