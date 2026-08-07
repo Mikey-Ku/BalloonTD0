@@ -168,7 +168,9 @@ tower and balloon systems, waves, UI, and tooling were rewritten afterwards.
 
 Inspired by Bloons TD by Ninja Kiwi. Built with [Pygame](https://www.pygame.org/).
 
-> **Note:** the file in `soundtrack/` is a Spotify rip inherited from the
-> original project and should be replaced with a licensed or public-domain
-> track before this repository is made public. Music loading is a directory
-> scan, so swapping the file is all that is required.
+The music is Tim Haywood's, carried over from the original project, and is not
+mine to redistribute. It is excluded from the browser build and from the MIT
+licence covering the source. Music loading is a directory scan, so swapping
+`soundtrack/` for something you hold the rights to needs no code change.
+
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).

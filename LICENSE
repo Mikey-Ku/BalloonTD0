@@ -1,0 +1,37 @@
+MIT License
+
+Copyright (c) 2026 Michael Ku Jr
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+The MIT licence above covers the source code.
+
+It does not cover everything in this repository, and a few pieces are not mine
+to license:
+
+- The music in `soundtrack/` is a commercial track that came from the original
+  2025 course project. It is not licensed for redistribution and it is not
+  covered by the above. Replace it if you fork this for anything beyond
+  personal or coursework use.
+- Balloon TD is a tribute to Bloons TD by Ninja Kiwi. The concept, and the
+  visual language it borrows, belong to them.
+- Some map and sprite art carries over from the original team project by
+  Hong Zhang, Michael Ku, and Jackson Gamache. See the credits in README.md.

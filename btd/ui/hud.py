@@ -487,8 +487,9 @@ class Hud:
                              align=RIGHT)
 
         if run.round_active:
-            bar = pygame.Rect(strip.x + 4, strip.bottom - 6, strip.width - 8, 4)
-            progress_bar(surface, bar, run.round_progress, back=WOOD_SHADE)
+            track = pygame.Rect(strip.x + 4, strip.bottom - 6,
+                                strip.width - 8, 4)
+            progress_bar(surface, track, run.round_progress, back=WOOD_SHADE)
 
     def _draw_shop(self, surface: pygame.Surface) -> None:
         """Draw the tower rack and details for the hovered entry.
@@ -788,7 +789,9 @@ def _tower_stats(tower) -> list[tuple[str, str]]:
     if tower.moab_bonus:
         rows.append(("vs MOAB", f"+{tower.moab_bonus}"))
     if tower.slow_factor < 1.0:
-        rows.append(("Slow", f"{int(tower.slow_factor * 100)}% for {tower.slow_time:.0f}s"))
+        rows.append(("Slow",
+                     f"{int(tower.slow_factor * 100)}% for "
+                     f"{tower.slow_time:.0f}s"))
     rows.append(("Camo", "yes" if tower.camo else "no"))
     if tower.income:
         rows.append(("Income", f"${tower.income:,}"))

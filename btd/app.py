@@ -17,7 +17,7 @@ import os
 
 import pygame
 
-from . import maps
+from . import assets, maps
 from .audio import Audio
 from .config import FPS, MAP_W, SCREEN_H, SCREEN_W
 from .game import RUNNING, WON, Run
@@ -26,7 +26,7 @@ from .ui.hud import Hud
 from .ui.screens import (
     MapSelectScreen, MenuScreen, PauseScreen, ResultScreen, SettingsScreen,
 )
-from .ui.widgets import dim
+from .ui.widgets import CENTER, dim, draw_text
 
 MENU = "menu"
 MAPSELECT = "mapselect"
@@ -92,7 +92,6 @@ class App:
         if self._backdrop is not None:
             return self._backdrop
 
-        from . import assets
         source = "background_images/Background_blurred.png"
         if os.path.exists(assets.path(source)):
             base = assets.image(source, (SCREEN_W, SCREEN_H))
@@ -267,7 +266,6 @@ class App:
 
     def _draw_pause_hint(self) -> None:
         """Overlay a banner when the simulation is frozen but not in a modal."""
-        from .ui.widgets import CENTER, draw_text
         banner = pygame.Surface((MAP_W, 44), pygame.SRCALPHA)
         banner.fill((10, 13, 20, 190))
         self.screen.blit(banner, (0, SCREEN_H // 2 - 22))

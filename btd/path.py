@@ -169,9 +169,7 @@ class Path:
         for g_y in range(c_y - reach, c_y + reach + 1):
             for g_x in range(c_x - reach, c_x + reach + 1):
                 for p_x, p_y in self._grid.get((g_x, g_y), ()):
-                    d = math.hypot(p_x - x, p_y - y)
-                    if d < best:
-                        best = d
+                    best = min(best, math.hypot(p_x - x, p_y - y))
         return best
 
 

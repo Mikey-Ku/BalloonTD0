@@ -83,7 +83,8 @@ class FloatingText:
 class Ring:
     """An expanding circle, used for explosions and ice pulses."""
 
-    __slots__ = ("x", "y", "radius", "max_radius", "life", "max_life", "colour", "width")
+    __slots__ = ("x", "y", "radius", "max_radius", "life", "max_life",
+                 "colour", "width")
 
     def __init__(self, x, y, max_radius, colour, life=0.32, width=3):
         self.x = x

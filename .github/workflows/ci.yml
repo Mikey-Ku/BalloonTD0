@@ -19,7 +19,14 @@ jobs:
           cache: pip
 
       - name: Install
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pylint
+
+      - name: Lint
+        # Source only. The tools/ scripts manipulate sys.path before importing
+        # the package, which is deliberate for standalone scripts and which
+        # pylint cannot be talked out of objecting to, and test methods do not
+        # carry docstrings because their names are the documentation.
+        run: python -m pylint btd main.py
 
       - name: Test
         # Pygame opens a window and an audio device on import. A CI runner has

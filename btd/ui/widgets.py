@@ -259,6 +259,12 @@ class RoundIconButton(Button):
 
     def draw(self, surface: pygame.Surface) -> None:
         """Render the circular button and its glyph."""
+        # Rect.center is a tuple of two ints. It is defined in C, so pylint
+        # cannot infer that and calls every index below unsubscriptable, then
+        # calls the equivalent unpacking a non-sequence. The check is simply
+        # wrong about pygame here, so it is off for this method rather than
+        # the code being contorted to satisfy it.
+        # pylint: disable=unsubscriptable-object
         radius = min(self.rect.width, self.rect.height) // 2
         centre = self.rect.center
         chrome.round_button(surface, centre, radius, self.face, self.dark,
@@ -357,14 +363,12 @@ def tooltip(surface: pygame.Surface, lines: list[tuple[str, tuple[int, int, int]
     height = 16 + line_h * len(lines)
     rect = pygame.Rect(anchor[0], anchor[1], width, height)
 
-    if rect.right > bounds.right - 6:
-        rect.right = bounds.right - 6
-    if rect.left < bounds.left + 6:
-        rect.left = bounds.left + 6
-    if rect.bottom > bounds.bottom - 6:
-        rect.bottom = bounds.bottom - 6
-    if rect.top < bounds.top + 6:
-        rect.top = bounds.top + 6
+    # Order matters: clamping the far edge first can push the near edge out
+    # of bounds on a panel wider than the area, so the near edge wins.
+    rect.right = min(rect.right, bounds.right - 6)
+    rect.left = max(rect.left, bounds.left + 6)
+    rect.bottom = min(rect.bottom, bounds.bottom - 6)
+    rect.top = max(rect.top, bounds.top + 6)
 
     raised_panel(surface, rect, PAPER, WOOD, radius=8)
     for i, (text, colour) in enumerate(lines):

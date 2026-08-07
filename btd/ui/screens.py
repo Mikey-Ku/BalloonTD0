@@ -35,7 +35,12 @@ class Screen:
         self.sliders: list[Slider] = []
 
     def update(self, dt: float, mouse: tuple[int, int]) -> None:
-        """Refresh hover states."""
+        """Refresh hover states.
+
+        ``dt`` is unused here but is part of the signature every screen
+        implements, and screens with animation do use it.
+        """
+        del dt
         for button in self.buttons:
             button.update_hover(mouse)
 
