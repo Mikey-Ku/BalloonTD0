@@ -130,20 +130,19 @@ hand control back to the browser.
 the soundtrack. Without those exclusions the bundle is 40 MB; with them it is
 2.3 MB.
 
-`.github/workflows/pages.yml` builds and publishes it on every push to `main`,
-once **Settings > Pages > Source** is set to **GitHub Actions**.
+Nothing publishes this anywhere. It is here because it was interesting to make
+the engine work in a browser, and because it means anyone can try the game
+without a Python install if you ever want to hand them a link. The normal way
+to play is `python main.py`.
 
-> **The bundle is verified, running it in a browser is not.** Every build check
-> passes: `index.html` is produced, the `.apk` is 2.3 MB, and it contains the
-> right files. But it has only ever been loaded inside a sandboxed browser,
-> where the pygbag runtime reaches
-> `https://pygame-web.github.io/cdn/index-0.9.3-cp312.json` (HTTP 200), then
-> makes no further requests and sits at "Loading, please wait" with a 1x1
-> canvas. That is consistent with the follow-up WASM wheel downloads being
-> blocked by the sandbox, but it has not been proven. **Open
-> `http://localhost:8000` in an ordinary browser and confirm it plays before
-> pointing anyone at the published page.** If it stalls there too, check the
-> console for a failed fetch to `pygame-web.github.io`.
+> **The bundle is verified, running it in a browser is not.** The build
+> produces `index.html` and a 2.3 MB `.apk` containing the right files, but it
+> has only ever been loaded inside a sandboxed browser, where the pygbag
+> runtime fetches `https://pygame-web.github.io/cdn/index-0.9.3-cp312.json`
+> (HTTP 200), makes no further requests, and sits at "Loading, please wait"
+> with a 1x1 canvas. That is consistent with the follow-up WASM wheel
+> downloads being blocked by the sandbox, but it is not proven. Open
+> `http://localhost:8000` in an ordinary browser to find out.
 
 ---
 
