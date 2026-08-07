@@ -2,7 +2,7 @@
 
 Every sprite in the game looks for a PNG at a predictable path and draws a
 procedural fallback if it is absent. **Adding art is just saving a file to the
-right path** — no code change, no registration step.
+right path**, with no code change and no registration step.
 
 Check status at any time:
 
@@ -16,7 +16,7 @@ Right now: **16 of 31 slots use real artwork; the other 15 are drawn in code.**
 
 ## Rules that apply to everything
 
-- **Format**: PNG with transparency (map backgrounds excepted — those are opaque).
+- **Format**: PNG with transparency (map backgrounds excepted, those are opaque).
 - **Canvas**: square, and **256×256**. The game scales down with `smoothscale`,
   so anything past roughly 2× the on-screen size is thrown away. The sprites
   inherited from the original project were 1024×1024 at 1.3 MB each for a 40 px
@@ -29,14 +29,14 @@ Right now: **16 of 31 slots use real artwork; the other 15 are drawn in code.**
 
 ---
 
-## 1. Balloons — 14 needed
+## 1. Balloons: 14 needed
 
 `balloon_images/<name>.png`
 
 **All eleven basic balloons render at exactly 36×36.** Uniform size is
 deliberate: they used to vary between 30 and 42 px, which made a mixed stack
 look ragged. Please keep every basic balloon on the same canvas and the same
-body size — differentiate by **colour and pattern only**, never by scale.
+body size. Differentiate by **colour and pattern only**, never by scale.
 
 | Balloon | File | On-screen | What distinguishes it now |
 |---|---|---|---|
@@ -45,9 +45,9 @@ body size — differentiate by **colour and pattern only**, never by scale.
 | Green | `green.png` | 36×36 | plain green |
 | Yellow | `yellow.png` | 36×36 | plain yellow |
 | Pink | `pink.png` | 36×36 | plain pink |
-| Black | `black.png` | 36×36 | near-black — immune to explosives |
+| Black | `black.png` | 36×36 | near-black, immune to explosives |
 | White | `white.png` | 36×36 | white with a shaded lower half |
-| Lead | `lead.png` | 36×36 | grey metallic sheen — immune to sharp |
+| Lead | `lead.png` | 36×36 | grey metallic sheen, immune to sharp |
 | Zebra | `zebra.png` | 36×36 | black and white vertical stripes |
 | Rainbow | `rainbow.png` | 36×36 | six horizontal colour bands |
 | Ceramic | `ceramic.png` | 36×36 | brown with plate seams |
@@ -64,13 +64,13 @@ one file per balloon, not one per combination.
 
 > ⚠️ Balloon art is currently **switched off**. `USE_BALLOON_ART = False` in
 > [btd/config.py](btd/config.py) forces procedural drawing so the set stays
-> uniform. Flip it to `True` once all fourteen exist — turning it on with a
+> uniform. Flip it to `True` once all fourteen exist. Turning it on with a
 > partial set is what produced the mismatched look in the first place.
 
 The five old `<name>_balloon.png` files are no longer loaded. They are
 inconsistent in size and style with each other; that is what prompted this.
 
-## 2. Towers — complete
+## 2. Towers: complete
 
 Each tower can have **two** pieces of art:
 
@@ -79,7 +79,7 @@ Each tower can have **two** pieces of art:
 | `monkey_images/<key>_logo.png` | shop rack in the sidebar, 46×46 | never |
 | `monkey_images/<key>_overhead.png` | on the map, 48×48 | **yes**, to face its target |
 
-Either may be missing — a tower with only one uses it in both places, so art
+Either may be missing. A tower with only one uses it in both places, so art
 can land one piece at a time without breaking anything.
 
 | Tower | key | logo | overhead |
@@ -90,7 +90,7 @@ can land one piece at a time without breaking anything.
 | Bomb Shooter | `bomb` | art | art |
 | Ice Monkey | `ice` | art | art |
 | Super Monkey | `super` | art | art |
-| Banana Farm | `farm` | art | n/a — never rotates, logo is fine |
+| Banana Farm | `farm` | art | n/a, never rotates, logo is fine |
 
 **Towers are complete.** Only balloons and a music track remain.
 
@@ -115,7 +115,7 @@ You do not need to match canvas sizes, padding, or even get the rotation
 right.
 
 **Sizing** matches **visible pixel area**, not canvas and not bounding box.
-Canvas is meaningless — the art delivered so far had subjects filling between
+Canvas is meaningless. The art delivered so far had subjects filling between
 37% and 100% of their image. Bounding box seems right but breaks on
 protrusions: the Sniper's diagonal rifle made its box half again as tall as
 anything else, so fitting the box rendered the monkey at half the size of the
@@ -124,16 +124,16 @@ within a few percent of the rest.
 
 **Orientation** is corrected in code. If a sprite does not face up, add an
 entry to `ORIENTATION` in [btd/sprites.py](btd/sprites.py) rather than
-re-exporting — the Bomb Shooter and Ice Monkey arrived facing down, and the
+re-exporting. The Bomb Shooter and Ice Monkey arrived facing down, and the
 Sniper's rifle pointed up-left, and all three are fixed with one line each.
 
 Filenames follow `<key>_logo.png` / `<key>_overhead.png`. Descriptive names
 like `Cannon-Overhead.png` or `Ice-Monkey-Logo.png` are also accepted (see
 `ALIASES` in [btd/sprites.py](btd/sprites.py)), but the key form is preferred
-— it is case-exact, and macOS will happily match a mis-cased filename that
+It is case-exact, and macOS will happily match a mis-cased filename that
 then fails on Linux and in the browser build.
 
-## 3. Map backgrounds — all covered
+## 3. Map backgrounds: all covered
 
 `background_images/<key>.png`, **exactly 960×720**, opaque.
 
@@ -144,7 +144,7 @@ then fails on Linux and in the browser build.
 | Park Path | `park.png` | art |
 
 Nothing needed here unless you want more maps. **To add one, send the artwork
-and I will trace it** — `tools/trace_map.py` derives where balloons walk from
+and I will trace it**. `tools/trace_map.py` derives where balloons walk from
 the image itself, so the path can never drift off the painted track.
 
 If you want to build one without artwork, the game will paint a background
@@ -159,13 +159,13 @@ python tools/export_maps.py
 
 That writes three references per map into `tools/map_export/`:
 
-- `<key>_render.png` — what the game draws now, as a starting point
-- `<key>_guide.png` — track centre line, walkable width, tower-clearance
+- `<key>_render.png`: what the game draws now, as a starting point
+- `<key>_guide.png`: track centre line, walkable width, tower-clearance
   boundary, and entry/exit markers, for use as a tracing layer
-- `<key>_buildable.png` — green where towers can go, red where they cannot
+- `<key>_buildable.png`: green where towers can go, red where they cannot
 
 To change a track's *shape* rather than its art, edit the control points in
-[btd/maps.py](btd/maps.py) — each map is about a dozen `(x, y)` points that a
+[btd/maps.py](btd/maps.py). Each map is about a dozen `(x, y)` points that a
 Catmull-Rom spline smooths into the path. Re-run `export_maps.py` afterwards.
 
 ### Adding a whole new map
@@ -180,7 +180,7 @@ The map picker, thumbnails, and per-map high scores pick it up automatically.
 
 | Slot | Location | Status |
 |---|---|---|
-| Music | `soundtrack/` — first `.ogg`, then `.mp3`, then `.wav` | needs replacing |
+| Music | `soundtrack/`, first `.ogg`, then `.mp3`, then `.wav` | needs replacing |
 | Sound effects | generated in `btd/audio.py` | synthesised, nothing needed |
 
 Music is a directory scan, so swapping the track means dropping a file in and
@@ -188,7 +188,7 @@ deleting the old one.
 
 ⚠️ The current file is `SpotiDownloader.com - Main Theme - Tim Haywood.mp3`, a
 Spotify rip. It should be replaced before this repository goes public. It is
-also **excluded from browser builds** — pygbag rejects MP3 (browsers need OGG)
+also **excluded from browser builds**, because pygbag rejects MP3 (browsers need OGG)
 and rejects filenames containing spaces, so the web version currently ships
 silent. **Prefer `.ogg`**; the loader checks for it first so one file can serve
 both desktop and web.
@@ -201,8 +201,8 @@ Free-to-use sources: [Incompetech](https://incompetech.com),
 
 ## UI theme reference
 
-If you want hand-drawn UI pieces later — panel frames, button plates, a title
-logo — these are the colours the interface uses, from
+If you want hand-drawn UI pieces later, such as panel frames, button plates or a title
+logo, these are the colours the interface uses, from
 [btd/config.py](btd/config.py):
 
 | Role | Colour | Used for |
@@ -215,8 +215,8 @@ logo — these are the colours the interface uses, from
 | Panel fill, resting | `#E8DABE` | button faces |
 | Primary text (ink) | `#3E291A` | text on cream |
 | Secondary text | `#7A5E46` | labels on cream |
-| Display gold | `#FFD44A` | money, prices — outlined |
-| Display white | `#FFFCF2` | lives, tower names — outlined |
+| Display gold | `#FFD44A` | money, prices, outlined |
+| Display white | `#FFFCF2` | lives, tower names, outlined |
 | Text outline | `#301C0E` | 2 px outline on all display text |
 | Accent (leaf) | `#68B648` | selection, upgrade pips |
 | Lives / danger | `#C63634` | health bar, menu button |
@@ -226,5 +226,5 @@ logo — these are the colours the interface uses, from
 The sidebar is drawn as a wooden cabinet: a beveled outer frame, a raised
 plaque for money and lives, a sunken rack holding one recessed cubby per
 tower, a cream detail panel, and glossy circular controls along the bottom.
-All of it is drawn with primitives in [btd/ui/chrome.py](btd/ui/chrome.py) —
+All of it is drawn with primitives in [btd/ui/chrome.py](btd/ui/chrome.py),
 there is no UI artwork to produce unless you want to replace it.

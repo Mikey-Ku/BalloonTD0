@@ -150,7 +150,7 @@ to play is `python main.py`.
 
 **Most sprites are drawn in code.** Every sprite looks for a PNG at a
 predictable path and falls back to procedural drawing if the file is absent, so
-adding real art means saving a file to the right place — no code change.
+adding real art means saving a file to the right place, with no code change.
 
 Balloons are deliberately procedural for now: all eleven basic types render at
 exactly 36x36 and differ only by colour and pattern, which is what keeps a
@@ -169,7 +169,7 @@ runs, so hand-drawn backgrounds line up with the real geometry.
 ## Credits
 
 This started as a team project at Olin College by **Hong Zhang**,
-**Mikey Ku**, and **Jackson Gamache** — the original is at
+**Mikey Ku**, and **Jackson Gamache**. The original is at
 [olincollege/BalloonTD0](https://github.com/olincollege/BalloonTD0), and its
 README is kept here as [README_original.md](README_original.md). That version's
 map art, balloon and monkey sprites, and overall shape carry over. The engine,
