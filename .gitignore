@@ -137,3 +137,6 @@ tools/map_export/
 tools/asset_originals/
 
 .DS_Store
+
+# Byproduct of running uv in a repo that installs with pip.
+uv.lock
